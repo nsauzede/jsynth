@@ -145,6 +145,14 @@ int main( int argc, char *argv[]) {
 						case SDLK_s:
 							__decay++;
 							break;
+						case SDLK_w:
+							__period--;
+	__width = __period / 2;	// ms
+							break;
+						case SDLK_x:
+							__period++;
+	__width = __period / 2;	// ms
+							break;
 						default:
 							break;
 					}
