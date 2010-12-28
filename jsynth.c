@@ -12,7 +12,7 @@ int tune = 50;		// %
 int note = 9;		// 9=A
 int octave = 1;		// 1=NORM (0=DOWN, 2=UP)
 
-int square_not_tri = 1;
+int __square_not_tri = 1;
 
 //int period = 60 * sampleFrequency / tempo / steps;	// ms
 //int period = 251;	// ms
@@ -23,6 +23,8 @@ int __width = 0;	// ms
 //int freq = 15.7 + note * 2.5 * 2 * octave;		// Hz
 //int freq = 440;		// Hz
 int __freq = 0;		// Hz
+
+int __decay = 10;						// %
 
 int next_t = 0;		// sample
 int t = 0;			// sample
@@ -37,6 +39,8 @@ int process_audio( jack_nframes_t nframes, void *arg) {
 	int _freq = __freq;
 	int _period = __period;
 	int _width = __width;
+	int _decay = __decay;						// %
+	int _square_not_tri = __square_not_tri;
 	unsigned int bytesPerPeriod = sampleFrequency / _freq;
 	for (i = 0; i < nframes; i++) {
 		sample_t s = 0;
@@ -51,8 +55,7 @@ int process_audio( jack_nframes_t nframes, void *arg) {
 			}
 			else {
 				double amp = 0.5;
-				int decay = 10;						// %
-				int decay_dur = (_width * sampleFrequency / 1000) * decay / 100;
+				int decay_dur = (_width * sampleFrequency / 1000) * _decay / 100;
 				int decay_start = (_width * sampleFrequency / 1000) - decay_dur;
 				int decay_end = (_width * sampleFrequency / 1000);
 				if ((pos >= decay_start) && (pos < decay_end))
@@ -60,7 +63,7 @@ int process_audio( jack_nframes_t nframes, void *arg) {
 //				printf( "pos=%d width=%d decay=%d decay_dur=%d decay_start=%d decay_end=%d amp=%f\n", pos, width, decay, decay_dur, decay_start, decay_end, amp);
 //				s = sin( pos * 2 * M_PI / bytesPerPeriod);
 				s = ((pos % bytesPerPeriod) >= (bytesPerPeriod / 2)) - 1;
-				if (square_not_tri) {
+				if (_square_not_tri) {
 					if (s >= 0)
 						s = 1;
 					else
@@ -69,8 +72,8 @@ int process_audio( jack_nframes_t nframes, void *arg) {
 					s = 2 * ((double)(pos % bytesPerPeriod) / bytesPerPeriod) - 1;
 				}
 				s *= amp * volume / 100;
-				printf( "pos=%d bytesPerPeriod=%d width=%d decay=%d decay_dur=%d decay_start=%d decay_end=%d amp=%.1f s=%.1f\n",
-					pos, bytesPerPeriod, _width, decay, decay_dur, decay_start, decay_end, amp, s);
+//				printf( "pos=%d bytesPerPeriod=%d width=%d decay=%d decay_dur=%d decay_start=%d decay_end=%d amp=%.1f s=%.1f\n",
+//					pos, bytesPerPeriod, _width, _decay, decay_dur, decay_start, decay_end, amp, s);
 				pos++;
 			}
 		}
@@ -84,7 +87,7 @@ int main( int argc, char *argv[]) {
 	if (argc > arg) {
 		sscanf( argv[arg++], "%d", &tune);
 	if (argc > arg) {
-		sscanf( argv[arg++], "%d", &square_not_tri);
+		sscanf( argv[arg++], "%d", &__square_not_tri);
 	}
 	}
 	printf( "tune=%d\n", tune);
@@ -110,7 +113,8 @@ int main( int argc, char *argv[]) {
 	__period = 1000 * 60 / tempo / steps;	// ms
 	__width = __period / 2;	// ms
 	__freq = ((double)15.7 + 363.6 * tune / 100 + note * 2.5) * 2 * octave;		// Hz
-	printf( "period=%d freq=%d\n", __period, __freq);
+	SDL_EnableKeyRepeat( SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
+	int dirty = 1;
 	int done = 0;
 	while (!done) {
 		SDL_Event event;
@@ -121,14 +125,36 @@ int main( int argc, char *argv[]) {
 				default:
 					break;
 				case SDL_KEYDOWN:
+					dirty = 1;
 					switch (event.key.keysym.sym) {
 						case SDLK_ESCAPE:
 							done = 1;
+							break;
+						case SDLK_m:
+							__square_not_tri = 1 - __square_not_tri;
+							break;
+						case SDLK_a:
+							__freq--;
+							break;
+						case SDLK_z:
+							__freq++;
+							break;
+						case SDLK_q:
+							__decay--;
+							break;
+						case SDLK_s:
+							__decay++;
+							break;
 						default:
 							break;
 					}
 					break;
 			}
+		}
+		if (dirty) {
+			printf( "square_not_tri=%d period=%d freq=%d width=%d decay=%d\n",
+				__square_not_tri, __period, __freq, __width, __decay);
+			dirty = 0;
 		}
 		SDL_Delay( 100);
 	}
