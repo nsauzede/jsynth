@@ -5,21 +5,28 @@
 
 int sampleFrequency = 44100;
 
-int tempo = 60;		// bpm
+int volume = 100;	// %
+int tempo = 140;		// bpm
 int steps = 1;
 int tune = 50;		// %
-int volume = 30;	// %
 int note = 9;		// 9=A
 int octave = 1;		// 1=NORM (0=DOWN, 2=UP)
+
 int square_not_tri = 1;
 
-int period = 251*1;	// ms
+//int period = 60 * sampleFrequency / tempo / steps;	// ms
+//int period = 251;	// ms
+int period = 0;	// ms
+//int width = ;	// ms
 int width = 132;	// ms
 //int freq = 15.7 + note * 2.5 * 2 * octave;		// Hz
-int freq = 440;		// Hz
+//int freq = 440;		// Hz
+int freq = 0;		// Hz
+
 int next_t = 0;		// sample
 int t = 0;			// sample
 int pos = -1;		// sample
+int done = 0;
 
 typedef jack_default_audio_sample_t sample_t;
 int process_audio( jack_nframes_t nframes, void *arg) {
@@ -38,17 +45,45 @@ int process_audio( jack_nframes_t nframes, void *arg) {
 				next_t = t + (period - width) * sampleFrequency / 1000;
 				pos = -1;
 			}
-			else
+			else {
+				double amp = 0.5;
+				int decay = 10;						// %
+				int decay_dur = (width * sampleFrequency / 1000) * decay / 100;
+				int decay_start = (width * sampleFrequency / 1000) - decay_dur;
+				int decay_end = (width * sampleFrequency / 1000);
+				if ((pos >= decay_start) && (pos < decay_end))
+					amp *= ((double)decay_dur - (pos - decay_start)) / decay_dur;
+//				printf( "pos=%d width=%d decay=%d decay_dur=%d decay_start=%d decay_end=%d amp=%f\n", pos, width, decay, decay_dur, decay_start, decay_end, amp);
+//				s = sin( pos * 2 * M_PI / bytesPerPeriod);
+				s = ((pos % bytesPerPeriod) >= (bytesPerPeriod / 2)) - 1;
+				if (square_not_tri) {
+					if (s >= 0)
+						s = 1;
+					else
+						s = -1;
+				} else {
+					s = 2 * ((double)(pos % bytesPerPeriod) / bytesPerPeriod) - 1;
+				}
+				s *= amp * volume / 100;
+				printf( "pos=%d bytesPerPeriod=%d width=%d decay=%d decay_dur=%d decay_start=%d decay_end=%d amp=%.1f s=%.1f\n",
+					pos, bytesPerPeriod, width, decay, decay_dur, decay_start, decay_end, amp, s);
 				pos++;
+			}
 		}
-		if (pos >= 0)
-			s = ((double)0.5 * volume * sin( pos * 2 * M_PI / bytesPerPeriod)) / 100;
 		t++;
 		stream[i] = s;
 	}
 	return 0;
 }
 int main( int argc, char *argv[]) {
+	int arg = 1;
+	if (argc > arg) {
+		sscanf( argv[arg++], "%d", &tune);
+	if (argc > arg) {
+		sscanf( argv[arg++], "%d", &square_not_tri);
+	}
+	}
+	printf( "tune=%d\n", tune);
 	SDL_Init( SDL_INIT_VIDEO);
 	atexit( SDL_Quit);
 	SDL_Surface *screen = SDL_SetVideoMode( 100, 100, 32, 0);
@@ -63,10 +98,14 @@ int main( int argc, char *argv[]) {
 		port = jack_port_register( client, "140_bpm", JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);
 		jack_set_process_callback( client, process_audio, port);
 		sampleFrequency = jack_get_sample_rate( client);
+		printf( "sampleFrequency=%d\n", sampleFrequency);
 		jack_activate( client);
 	} else {
 		printf( "jack server not running ?\n");
 	}
+	period = 1000 * 60 / tempo / steps;	// ms
+	freq = ((double)15.7 + 363.6 * tune / 100 + note * 2.5) * 2 * octave;		// Hz
+	printf( "period=%d freq=%d\n", period, freq);
 	int done = 0;
 	while (!done) {
 		SDL_Event event;
