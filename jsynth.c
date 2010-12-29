@@ -24,7 +24,12 @@ int __width = 0;	// ms
 //int freq = 440;		// Hz
 int __freq = 0;		// Hz
 
-int __decay = 10;						// %
+int __delay = 0;						// % of width
+int __attack = 10;						// % of width
+int __hold = 10;						// % of width
+int __decay = 10;						// % of width
+int __sustain = 50;						// % of amplitude max
+int __release = 10;						// % of width
 
 int next_t = 0;		// sample
 int t = 0;			// sample
@@ -39,8 +44,16 @@ int process_audio( jack_nframes_t nframes, void *arg) {
 	int _freq = __freq;
 	int _period = __period;
 	int _width = __width;
-	int _decay = __decay;						// %
 	int _square_not_tri = __square_not_tri;
+#define USE_DAHDSR
+#ifdef USE_DAHDSR
+	int _delay = __delay;						// %
+	int _attack = __attack;						// %
+	int _hold = __hold;						// %
+	int _decay = __decay;						// %
+	int _sustain = __sustain;						// %
+#endif
+	int _release = __release;						// %
 	unsigned int bytesPerPeriod = sampleFrequency / _freq;
 	for (i = 0; i < nframes; i++) {
 		sample_t s = 0;
@@ -54,26 +67,67 @@ int process_audio( jack_nframes_t nframes, void *arg) {
 				pos = -1;
 			}
 			else {
-				double amp = 0.5;
+				#define AMAX ((double)0.5)
+				double amp = AMAX;
+#ifdef USE_DAHDSR
+				int delay_dur = (_width * sampleFrequency / 1000) * _delay / 100;
+				int delay_start = 0;
+				int delay_end = delay_start + delay_dur;
+				int attack_dur = (_width * sampleFrequency / 1000) * _attack / 100;
+				int attack_start = delay_end;
+				int attack_end = attack_start + attack_dur;
+				int hold_dur = (_width * sampleFrequency / 1000) * _hold / 100;
+				int hold_start = attack_end;
+				int hold_end = hold_start + hold_dur;
 				int decay_dur = (_width * sampleFrequency / 1000) * _decay / 100;
-				int decay_start = (_width * sampleFrequency / 1000) - decay_dur;
-				int decay_end = (_width * sampleFrequency / 1000);
-				if ((pos >= decay_start) && (pos < decay_end))
+				int decay_start = hold_end;
+				int decay_end = decay_start + decay_dur;
+#endif
+				int release_dur = (_width * sampleFrequency / 1000) * _release / 100;
+#ifdef USE_DAHDSR
+				int sustain_dur = (_width * sampleFrequency / 1000) - (decay_end + release_dur);
+				int sustain_start = decay_end;
+				int sustain_end = sustain_start + sustain_dur;
+#endif
+				int release_start = (_width * sampleFrequency / 1000) - release_dur;
+				int release_end = release_start + release_dur;
+#ifdef USE_DAHDSR
+				if ((pos >= delay_start) && (pos < delay_end))
+					amp *= (double)0;
+				else if ((pos >= attack_start) && (pos < attack_end))
+					amp *= ((double)pos - attack_start) / attack_dur;
+				else if ((pos >= hold_start) && (pos < hold_end))
+					amp *= (double)1;
+				else if ((pos >= decay_start) && (pos < decay_end))
 					amp *= ((double)decay_dur - (pos - decay_start)) / decay_dur;
-//				printf( "pos=%d width=%d decay=%d decay_dur=%d decay_start=%d decay_end=%d amp=%f\n", pos, width, decay, decay_dur, decay_start, decay_end, amp);
-//				s = sin( pos * 2 * M_PI / bytesPerPeriod);
+				else if ((pos >= sustain_start) && (pos < sustain_end))
+					amp *= (double)_sustain / 100;
+				else
+#endif
+				if ((pos >= release_start) && (pos < release_end))
+					amp *= ((double)release_dur - (pos - release_start)) / release_dur;
+//				printf( "pos=%d width=%d release=%d release_dur=%d release_start=%d release_end=%d amp=%f\n",
+//					pos, _width, _release, release_dur, release_start, release_end, amp);
+#ifdef SQUARE_NOT_TRI
 				s = ((pos % bytesPerPeriod) >= (bytesPerPeriod / 2)) - 1;
+#else
+				s = sin( pos * 2 * M_PI / bytesPerPeriod);
+#endif
 				if (_square_not_tri) {
+#ifdef SQUARE_NOT_SIN
 					if (s >= 0)
 						s = 1;
 					else
 						s = -1;
+#endif
 				} else {
 					s = 2 * ((double)(pos % bytesPerPeriod) / bytesPerPeriod) - 1;
 				}
 				s *= amp * volume / 100;
-//				printf( "pos=%d bytesPerPeriod=%d width=%d decay=%d decay_dur=%d decay_start=%d decay_end=%d amp=%.1f s=%.1f\n",
-//					pos, bytesPerPeriod, _width, _decay, decay_dur, decay_start, decay_end, amp, s);
+#if 1
+				printf( "pos=%d bPerPer=%d w=%d attack=%d/%d@%d:%d release=%d/%d@%d:%d amp=%.1f s=%.1f\n",
+					pos, bytesPerPeriod, _width, _attack, attack_dur, attack_start, attack_end, _release, release_dur, release_start, release_end, amp, s);
+#endif
 				pos++;
 			}
 		}
@@ -140,10 +194,10 @@ int main( int argc, char *argv[]) {
 							__freq++;
 							break;
 						case SDLK_q:
-							__decay--;
+							__release--;
 							break;
 						case SDLK_s:
-							__decay++;
+							__release++;
 							break;
 						case SDLK_w:
 							__period--;
@@ -160,8 +214,8 @@ int main( int argc, char *argv[]) {
 			}
 		}
 		if (dirty) {
-			printf( "square_not_tri=%d period=%d freq=%d width=%d decay=%d\n",
-				__square_not_tri, __period, __freq, __width, __decay);
+			printf( "square_not_tri=%d period=%d freq=%d width=%d release=%d\n",
+				__square_not_tri, __period, __freq, __width, __release);
 			dirty = 0;
 		}
 		SDL_Delay( 100);
