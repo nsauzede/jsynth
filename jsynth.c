@@ -99,7 +99,7 @@ int process_audio( jack_nframes_t nframes, void *arg) {
 					amp *= (double)_sustain / 100;
 				else
 				if ((pos >= release_start) && (pos < release_end))
-					amp = (AMAX - AMAX * (double)_sustain / 100) * ((double)release_dur - (pos - release_start)) / release_dur;
+					amp *= ((double)_sustain / 100) * ((double)release_dur - (pos - release_start)) / release_dur;
 				if (_sine_not_square)
 					s = sin( pos * 2 * M_PI / bytesPerPeriod);
 				else
