@@ -137,18 +137,21 @@ int process_audio( jack_nframes_t nframes, void *arg) {
 				else
 				if ((pos >= release_start) && (pos < release_end))
 					amp *= ((double)_sustain / 100) * ((double)release_dur - (pos - release_start)) / release_dur;
+
+				int tri = pos % bytesPerPeriod;		// base triangle
+
 				if (_square_not_tri) {
-					if (_sine_not_square)
+					if (_sine_not_square)								// sine
 						s = sin( pos * 2 * M_PI / bytesPerPeriod);
-					else {
-						s = ((pos % bytesPerPeriod) >= (bytesPerPeriod / 2)) - 1;
+					else {												// square
+						s = (tri >= (bytesPerPeriod / 2)) - 1;
 						if (s >= 0)
 							s = 1;
 						else
 							s = -1;
 					}
-				} else {
-					s = 2 * ((double)(pos % bytesPerPeriod) / bytesPerPeriod) - 1;
+				} else {												// triangle
+					s = 2 * ((double)(tri) / bytesPerPeriod) - 1;
 				}
 				s *= amp * _volume / 100;
 #if 0
