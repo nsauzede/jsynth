@@ -15,7 +15,7 @@ typedef struct {
 } step_t;
 
 #define MAX_STEPS 16
-step_t pattern[MAX_STEPS] = {
+step_t pattern[MAX_STEPS] = {		// by kurt kurasaki
 //    n  o  p  a  s
 	{ 0, 0, 1},		// step1
 	{ 0, 1, 1},		// step2
@@ -40,23 +40,10 @@ int sampleFrequency = 44100;
 int __volume = 50;	// %
 int __tempo = 140;		// bpm
 int __steps = 16;
-int tune = 50;		// %
-//int note = 9;		// 0=C, 9=A
-//int octave = 1;		// 1=NORM (0=DOWN, 2=UP)
-int cutoff = 100;	// %
-
+int __tune = 50;		// %
+int __cutoff = 100;	// %
 int __square_not_tri = 0;
 int __sine_not_square = 0;
-
-//int period = 750 * 20 / tempo;	// ms
-//int period = 251;	// ms
-//int __tempo = 0;	// ms
-//int width = period / 2;	// ms
-//int __width = 132;	// ms
-int __width = 0;	// ms
-//int freq = 15.7 + note * 2.5 * 2 * octave;		// Hz
-//int freq = 440;		// Hz
-int __cutoff = 0;		// Hz
 
 int __delay = 0;						// % of width
 int __attack = 0;						// % of width
@@ -76,6 +63,7 @@ int process_audio( jack_nframes_t nframes, void *arg) {
 	jack_port_t *port = arg;
 	sample_t *stream = jack_port_get_buffer( port, nframes);
 	int i;
+	int _tune = __tune;
 	int _volume = __volume;
 	int note = 0;
 	int octave = 0;
@@ -86,7 +74,7 @@ int process_audio( jack_nframes_t nframes, void *arg) {
 	} else {
 		note = pattern[step].note;
 		octave = pattern[step].octave;
-		n = note + (12 * octave) + ((double)24 * tune / 100);
+		n = note + (12 * octave) + ((double)24 * _tune / 100);
 		_freq = (double)16.3516 * pow( (double)1.0594630943592952645618252949463, n);		// Hz
 	}
 	int _tempo = __tempo;
@@ -107,7 +95,7 @@ int process_audio( jack_nframes_t nframes, void *arg) {
 		if (t >= next_t) {
 			next_t = t + _period * sampleFrequency / 1000;
 			pos = 0;
-//			printf( "step#%d: tune=%d note=%d octave=%d n=%d\n", step, tune, note, octave, n);
+//			printf( "step#%d: tune=%d note=%d octave=%d n=%d\n", step, _tune, note, octave, n);
 		}
 		if (pos >= 0) {
 			if (pos >= (_width * sampleFrequency / 1000)) {
@@ -178,7 +166,7 @@ int process_audio( jack_nframes_t nframes, void *arg) {
 int main( int argc, char *argv[]) {
 	int arg = 1;
 	if (argc > arg) {
-		sscanf( argv[arg++], "%d", &tune);
+		sscanf( argv[arg++], "%d", &__tune);
 	if (argc > arg) {
 		sscanf( argv[arg++], "%d", &__square_not_tri);
 	}
@@ -274,10 +262,10 @@ int main( int argc, char *argv[]) {
 							__release++;
 							break;
 						case SDLK_l:
-							__width--;
+							__cutoff--;
 							break;
 						case SDLK_o:
-							__width++;
+							__cutoff++;
 							break;
 						case SDLK_m:
 							__volume--;
@@ -292,8 +280,8 @@ int main( int argc, char *argv[]) {
 			}
 		}
 		if (dirty) {
-			printf( "Wsqu=%d Xsin=%d Atempo=%d Zsteps=%d Edelay=%d Rattack=%d Thold=%d Ydecay=%d Usustain=%d Irelease=%d Owidth=%d Pvol=%d\n",
-				__square_not_tri, __sine_not_square, __tempo, __steps, __delay, __attack, __hold, __decay, __sustain, __release, __width, __volume);
+			printf( "Wsqu=%d Xsin=%d Atempo=%d Zsteps=%d Edelay=%d Rattack=%d Thold=%d Ydecay=%d Usustain=%d Irelease=%d Ocutoff=%d Pvol=%d\n",
+				__square_not_tri, __sine_not_square, __tempo, __steps, __delay, __attack, __hold, __decay, __sustain, __release, __cutoff, __volume);
 			dirty = 0;
 		}
 		SDL_Delay( 100);
