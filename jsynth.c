@@ -1,5 +1,8 @@
 #include <stdio.h>
+#define USE_MATH
+#ifdef USE_MATH
 #include <math.h>
+#endif
 #include <SDL.h>
 #include <jack/jack.h>
 
@@ -100,13 +103,11 @@ int process_audio( jack_nframes_t nframes, void *arg) {
 				else
 				if ((pos >= release_start) && (pos < release_end))
 					amp *= ((double)_sustain / 100) * ((double)release_dur - (pos - release_start)) / release_dur;
-				if (_sine_not_square)
-					s = sin( pos * 2 * M_PI / bytesPerPeriod);
-				else
-					s = ((pos % bytesPerPeriod) >= (bytesPerPeriod / 2)) - 1;
 				if (_square_not_tri) {
-					if (!_sine_not_square)
-					{
+					if (_sine_not_square)
+						s = sin( pos * 2 * M_PI / bytesPerPeriod);
+					else {
+						s = ((pos % bytesPerPeriod) >= (bytesPerPeriod / 2)) - 1;
 						if (s >= 0)
 							s = 1;
 						else
