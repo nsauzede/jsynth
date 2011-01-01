@@ -8,17 +8,17 @@
 
 int sampleFrequency = 44100;
 
-int __volume = 100;	// %
-int tempo = 140;		// bpm
+int __volume = 50;	// %
+int tempo = 60;		// bpm
 int steps = 1;
-int tune = 50;		// %
-int note = 9;		// 9=A
+int tune = 100;		// %
+int note = 9;		// 0=C, 9=A
 int octave = 1;		// 1=NORM (0=DOWN, 2=UP)
 
-int __sine_not_square = 1;
 int __square_not_tri = 1;
+int __sine_not_square = 0;
 
-//int period = 60 * sampleFrequency / tempo / steps;	// ms
+//int period = 750 * 20 / tempo;	// ms
 //int period = 251;	// ms
 int __period = 0;	// ms
 //int width = period / 2;	// ms
@@ -29,11 +29,11 @@ int __width = 0;	// ms
 int __freq = 0;		// Hz
 
 int __delay = 0;						// % of width
-int __attack = 10;						// % of width
-int __hold = 10;						// % of width
-int __decay = 10;						// % of width
+int __attack = 0;						// % of width
+int __hold = 0;						// % of width
+int __decay = 0;						// % of width
 int __sustain = 50;						// % of amplitude max
-int __release = 10;						// % of width
+int __release = 0;						// % of width
 
 int next_t = 0;		// sample
 int t = 0;			// sample
@@ -137,7 +137,6 @@ int main( int argc, char *argv[]) {
 		sscanf( argv[arg++], "%d", &__square_not_tri);
 	}
 	}
-	printf( "tune=%d\n", tune);
 	SDL_Init( SDL_INIT_VIDEO);
 	atexit( SDL_Quit);
 	SDL_Surface *screen = SDL_SetVideoMode( 100, 100, 32, 0);
@@ -157,9 +156,13 @@ int main( int argc, char *argv[]) {
 	} else {
 		printf( "jack server not running ?\n");
 	}
-	__period = 1000 * 60 / tempo / steps;	// ms
+//	__period = 1000 * 60 / tempo / steps;	// ms
+	__period = 750 * 20 / tempo;	// ms
 	__width = __period / 2;	// ms
-	__freq = ((double)15.7 + 363.6 * tune / 100 + note * 2.5) * 2 * octave;		// Hz
+//	__freq = ((double)16.3516 + 363.6 * tune / 100 + note * 2.5) * 2 * octave;		// Hz
+	int n = note + (12 * octave) + ((double)24 * tune / 100);
+	__freq = (double)16.3516 * pow( (double)1.0594630943592952645618252949463, n);		// Hz
+	printf( "tune=%d note=%d octave=%d n=%d\n", tune, note, octave, n);
 	SDL_EnableKeyRepeat( SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
 	int dirty = 1;
 	int done = 0;
