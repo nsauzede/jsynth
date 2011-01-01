@@ -16,46 +16,47 @@ typedef struct {
 
 #define MAX_STEPS 16
 step_t pattern[MAX_STEPS] = {
-	{ 9, 0, 1},		// step1
-	{ 9, 1, 1},		// step2
-	{ 9, 1, 1},		// step3
-	{ 9, 1, 0},		// step4
-	{ 9, 1, 1},		// step5
-	{ 9, 1, 1},		// step6
-	{ 9, 1, 1},		// step7
-	{ 9, 1, 1, 1},		// step8
-	{ 9, 1, 0},		// step9
-	{ 9, 2, 1, 0, 1},		// step10
-	{ 9, 1, 1},		// step11
-	{ 9, 1, 1, 0, 1},		// step12
-	{ 9, 1, 0},		// step13
-	{ 9, 1, 1},		// step14
-	{ 9, 1, 1},		// step15
-	{ 9, 1, 0},		// step16
+//    n  o  p  a  s
+	{ 0, 0, 1},		// step1
+	{ 0, 1, 1},		// step2
+	{ 0, 1, 1},		// step3
+	{ 0, 1, 0},		// step4
+	{ 3, 1, 1, 1},		// step5
+	{ 0, 1, 1},		// step6
+	{ 0, 1, 0},		// step7
+	{10, 1, 1},		// step8
+	{ 0, 2, 1, 0, 1},		// step9
+	{ 0, 1, 0},		// step10
+	{ 0, 1, 1},		// step11
+	{ 0, 1, 0},		// step12
+	{ 0, 1, 1, 1},		// step13
+	{ 0, 1, 1},		// step14
+	{ 0, 1, 1},		// step15
+	{ 0, 1, 0},		// step16
 };
 
 int sampleFrequency = 44100;
 
 int __volume = 50;	// %
-int tempo = 140;		// bpm
-int steps = 16;
-int tune = 100;		// %
+int __tempo = 140;		// bpm
+int __steps = 16;
+int tune = 50;		// %
 //int note = 9;		// 0=C, 9=A
 //int octave = 1;		// 1=NORM (0=DOWN, 2=UP)
 int cutoff = 100;	// %
 
-int __square_not_tri = 1;
+int __square_not_tri = 0;
 int __sine_not_square = 0;
 
 //int period = 750 * 20 / tempo;	// ms
 //int period = 251;	// ms
-int __period = 0;	// ms
+//int __tempo = 0;	// ms
 //int width = period / 2;	// ms
 //int __width = 132;	// ms
 int __width = 0;	// ms
 //int freq = 15.7 + note * 2.5 * 2 * octave;		// Hz
 //int freq = 440;		// Hz
-int __freq = 0;		// Hz
+int __cutoff = 0;		// Hz
 
 int __delay = 0;						// % of width
 int __attack = 0;						// % of width
@@ -76,7 +77,6 @@ int process_audio( jack_nframes_t nframes, void *arg) {
 	sample_t *stream = jack_port_get_buffer( port, nframes);
 	int i;
 	int _volume = __volume;
-#if 1
 	int note = 0;
 	int octave = 0;
 	int n = 0;
@@ -89,11 +89,10 @@ int process_audio( jack_nframes_t nframes, void *arg) {
 		n = note + (12 * octave) + ((double)24 * tune / 100);
 		_freq = (double)16.3516 * pow( (double)1.0594630943592952645618252949463, n);		// Hz
 	}
-#else
-	int _freq = __freq;
-#endif
-	int _period = __period;
-	int _width = __width;
+	int _tempo = __tempo;
+	int _steps = __steps;
+	int _period = 750 * 20 / _tempo;	// ms
+	int _width = _period / 2;	// ms
 	int _square_not_tri = __square_not_tri;
 	int _sine_not_square = __sine_not_square;
 	int _delay = __delay;						// %
@@ -114,7 +113,7 @@ int process_audio( jack_nframes_t nframes, void *arg) {
 			if (pos >= (_width * sampleFrequency / 1000)) {
 				next_t = t + (_period - _width) * sampleFrequency / 1000;
 				pos = -1;
-				step = (step + 1) % steps;
+				step = (step + 1) % _steps;
 			}
 			else {
 				#define AMAX ((double)0.5)
@@ -203,17 +202,6 @@ int main( int argc, char *argv[]) {
 	} else {
 		printf( "jack server not running ?\n");
 	}
-//	__period = 1000 * 60 / tempo / steps;	// ms
-	__period = 750 * 20 / tempo;	// ms
-	__width = __period / 2;	// ms
-//	__freq = ((double)16.3516 + 363.6 * tune / 100 + note * 2.5) * 2 * octave;		// Hz
-#if 0
-	int note = pattern[0].note;
-	int octave = pattern[0].octave;
-	int n = note + (12 * octave) + ((double)24 * tune / 100);
-	__freq = (double)16.3516 * pow( (double)1.0594630943592952645618252949463, n);		// Hz
-	printf( "tune=%d note=%d octave=%d n=%d\n", tune, note, octave, n);
-#endif
 	SDL_EnableKeyRepeat( SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
 	int dirty = 1;
 	int done = 0;
@@ -238,18 +226,16 @@ int main( int argc, char *argv[]) {
 							__sine_not_square = 1 - __sine_not_square;
 							break;
 						case SDLK_q:
-							__period--;
-//	__width = __period / 2;	// ms
+							__tempo--;
 							break;
 						case SDLK_a:
-							__period++;
-//	__width = __period / 2;	// ms
+							__tempo++;
 							break;
 						case SDLK_s:
-							__freq--;
+							__steps--;
 							break;
 						case SDLK_z:
-							__freq++;
+							__steps++;
 							break;
 						case SDLK_d:
 							__delay--;
@@ -306,8 +292,8 @@ int main( int argc, char *argv[]) {
 			}
 		}
 		if (dirty) {
-			printf( "Wsqu=%d Xsin=%d Aperiod=%d Zfreq=%d Edelay=%d Rattack=%d Thold=%d Ydecay=%d Usustain=%d Irelease=%d Owidth=%d Pvol=%d\n",
-				__square_not_tri, __sine_not_square, __period, __freq, __delay, __attack, __hold, __decay, __sustain, __release, __width, __volume);
+			printf( "Wsqu=%d Xsin=%d Atempo=%d Zsteps=%d Edelay=%d Rattack=%d Thold=%d Ydecay=%d Usustain=%d Irelease=%d Owidth=%d Pvol=%d\n",
+				__square_not_tri, __sine_not_square, __tempo, __steps, __delay, __attack, __hold, __decay, __sustain, __release, __width, __volume);
 			dirty = 0;
 		}
 		SDL_Delay( 100);
