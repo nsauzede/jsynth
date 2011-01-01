@@ -6,14 +6,43 @@
 #include <SDL.h>
 #include <jack/jack.h>
 
+typedef struct {
+	int note;
+	int octave;
+	int play_not_silence;	// 0=silence 1=play
+	int accent;
+	int slide;
+} step_t;
+
+#define MAX_STEPS 16
+step_t pattern[MAX_STEPS] = {
+	{ 9, 0, 1},		// step1
+	{ 9, 1, 1},		// step2
+	{ 9, 1, 1},		// step3
+	{ 9, 1, 0},		// step4
+	{ 9, 1, 1},		// step5
+	{ 9, 1, 1},		// step6
+	{ 9, 1, 1},		// step7
+	{ 9, 1, 1, 1},		// step8
+	{ 9, 1, 0},		// step9
+	{ 9, 2, 1, 0, 1},		// step10
+	{ 9, 1, 1},		// step11
+	{ 9, 1, 1, 0, 1},		// step12
+	{ 9, 1, 0},		// step13
+	{ 9, 1, 1},		// step14
+	{ 9, 1, 1},		// step15
+	{ 9, 1, 0},		// step16
+};
+
 int sampleFrequency = 44100;
 
 int __volume = 50;	// %
-int tempo = 60;		// bpm
-int steps = 1;
+int tempo = 140;		// bpm
+int steps = 16;
 int tune = 100;		// %
-int note = 9;		// 0=C, 9=A
-int octave = 1;		// 1=NORM (0=DOWN, 2=UP)
+//int note = 9;		// 0=C, 9=A
+//int octave = 1;		// 1=NORM (0=DOWN, 2=UP)
+int cutoff = 100;	// %
 
 int __square_not_tri = 1;
 int __sine_not_square = 0;
@@ -38,6 +67,7 @@ int __release = 0;						// % of width
 int next_t = 0;		// sample
 int t = 0;			// sample
 int pos = -1;		// sample
+int step = -1;
 int done = 0;
 
 typedef jack_default_audio_sample_t sample_t;
@@ -46,7 +76,22 @@ int process_audio( jack_nframes_t nframes, void *arg) {
 	sample_t *stream = jack_port_get_buffer( port, nframes);
 	int i;
 	int _volume = __volume;
+#if 1
+	int note = 0;
+	int octave = 0;
+	int n = 0;
+	int _freq = 1;
+	if (!pattern[step].play_not_silence || step == -1) {
+		_volume = 0;
+	} else {
+		note = pattern[step].note;
+		octave = pattern[step].octave;
+		n = note + (12 * octave) + ((double)24 * tune / 100);
+		_freq = (double)16.3516 * pow( (double)1.0594630943592952645618252949463, n);		// Hz
+	}
+#else
 	int _freq = __freq;
+#endif
 	int _period = __period;
 	int _width = __width;
 	int _square_not_tri = __square_not_tri;
@@ -63,11 +108,13 @@ int process_audio( jack_nframes_t nframes, void *arg) {
 		if (t >= next_t) {
 			next_t = t + _period * sampleFrequency / 1000;
 			pos = 0;
+//			printf( "step#%d: tune=%d note=%d octave=%d n=%d\n", step, tune, note, octave, n);
 		}
 		if (pos >= 0) {
 			if (pos >= (_width * sampleFrequency / 1000)) {
 				next_t = t + (_period - _width) * sampleFrequency / 1000;
 				pos = -1;
+				step = (step + 1) % steps;
 			}
 			else {
 				#define AMAX ((double)0.5)
@@ -160,9 +207,13 @@ int main( int argc, char *argv[]) {
 	__period = 750 * 20 / tempo;	// ms
 	__width = __period / 2;	// ms
 //	__freq = ((double)16.3516 + 363.6 * tune / 100 + note * 2.5) * 2 * octave;		// Hz
+#if 0
+	int note = pattern[0].note;
+	int octave = pattern[0].octave;
 	int n = note + (12 * octave) + ((double)24 * tune / 100);
 	__freq = (double)16.3516 * pow( (double)1.0594630943592952645618252949463, n);		// Hz
 	printf( "tune=%d note=%d octave=%d n=%d\n", tune, note, octave, n);
+#endif
 	SDL_EnableKeyRepeat( SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
 	int dirty = 1;
 	int done = 0;
