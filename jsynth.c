@@ -15,50 +15,67 @@ typedef struct {
 } step_t;
 
 #define MAX_STEPS 16
-step_t pattern[MAX_STEPS] = {		// by kurt kurasaki
+step_t pattern[MAX_STEPS] = {
 //    n  o  p  a  s
-	{ 0, 0, 1},		// step1
-	{ 0, 1, 1},		// step2
-	{ 0, 1, 1},		// step3
-	{ 0, 1, 0},		// step4
-	{ 3, 1, 1, 1},		// step5
-	{ 0, 1, 1},		// step6
-	{ 0, 1, 0},		// step7
-	{10, 1, 1},		// step8
+// this pattern by kurt kurasaki - Peff.com
+	{ 0, 0, 1, 0, 0},		// step1
+	{ 0, 1, 1, 0, 0},		// step2
+	{ 0, 1, 1, 0, 0},		// step3
+	{ 0, 1, 0, 0, 0},		// step4
+	{ 3, 1, 1, 1, 0},		// step5
+	{ 0, 1, 1, 0, 0},		// step6
+	{ 0, 1, 0, 0, 0},		// step7
+	{10, 1, 1, 0, 0},		// step8
 	{ 0, 2, 1, 0, 1},		// step9
-	{ 0, 1, 0},		// step10
-	{ 0, 1, 1},		// step11
-	{ 0, 1, 0},		// step12
-	{ 0, 1, 1, 1},		// step13
-	{ 0, 1, 1},		// step14
-	{ 0, 1, 1},		// step15
-	{ 0, 1, 0},		// step16
+	{ 0, 1, 0, 0, 0},		// step10
+	{ 0, 1, 1, 0, 0},		// step11
+	{ 0, 1, 0, 0, 0},		// step12
+	{ 0, 1, 1, 1, 0},		// step13
+	{ 0, 1, 1, 0, 0},		// step14
+	{ 0, 1, 1, 0, 0},		// step15
+	{ 0, 1, 0, 0, 0},		// step16
 };
 
 int sampleFrequency = 44100;
+typedef jack_default_audio_sample_t sample_t;
+#define AMAX ((double)0.9)
 
-int __volume = 50;	// %
-int __tempo = 140;		// bpm
-int __steps = 16;
-int __tune = 50;		// %
-int __cutoff = 100;	// %
-int __square_not_tri = 0;
-int __sine_not_square = 0;
+int __volume = 100;			// %
+int __tempo = 140;			// bpm
+int __steps = 16;			// n
+int __tune = 50;			// %
+int __cutoff = 100;			// %
+int __square_not_tri = 1;	// 0=tri, 1=square
+int __sine_not_square = 0;	// 0=square, 1=sine
 
-int __delay = 0;						// % of width
-int __attack = 0;						// % of width
-int __hold = 0;						// % of width
-int __decay = 0;						// % of width
-int __sustain = 50;						// % of amplitude max
-int __release = 0;						// % of width
+int __delay = 0;			// % of width
+int __attack = 0;			// % of width
+int __hold = 0;				// % of width
+int __decay = 0;			// % of width
+int __sustain = 100;			// % of amplitude max
+int __release = 0;			// % of width
 
-int next_t = 0;		// sample
-int t = 0;			// sample
-int pos = -1;		// sample
+int next_t = 0;				// sample
+int t = 0;					// sample
+int pos = -1;				// sample
 int step = -1;
 int done = 0;
 
-typedef jack_default_audio_sample_t sample_t;
+sample_t filter( sample_t s, int cutoff)
+{
+	sample_t result = 0;
+	static sample_t last = 0;
+#define FILTER_MIN ((double)2)
+#define FILTER_MAX ((double)200)
+	sample_t fc = (double)FILTER_MIN + (double)cutoff * (FILTER_MAX - FILTER_MIN) / (double)100;
+	sample_t rc = (double)1 / 2 / M_PI / fc;
+	sample_t dt = (double)1 / sampleFrequency;
+	sample_t a = dt / (rc + dt);
+	result = a * s + (1 - a) * last;
+	last = result;
+	return result;
+}
+
 int process_audio( jack_nframes_t nframes, void *arg) {
 	jack_port_t *port = arg;
 	sample_t *stream = jack_port_get_buffer( port, nframes);
@@ -79,16 +96,17 @@ int process_audio( jack_nframes_t nframes, void *arg) {
 	}
 	int _tempo = __tempo;
 	int _steps = __steps;
-	int _period = 750 * 20 / _tempo;	// ms
-	int _width = _period / 2;	// ms
+	int _cutoff = __cutoff;						// %
+	int _period = 750 * 20 / _tempo;			// ms
+	int _width = _period / 2;					// ms
 	int _square_not_tri = __square_not_tri;
 	int _sine_not_square = __sine_not_square;
 	int _delay = __delay;						// %
 	int _attack = __attack;						// %
-	int _hold = __hold;						// %
+	int _hold = __hold;							// %
 	int _decay = __decay;						// %
-	int _sustain = __sustain;						// %
-	int _release = __release;						// %
+	int _sustain = __sustain;					// %
+	int _release = __release;					// %
 	unsigned int bytesPerPeriod = sampleFrequency / _freq;
 	for (i = 0; i < nframes; i++) {
 		sample_t s = 0;
@@ -104,7 +122,6 @@ int process_audio( jack_nframes_t nframes, void *arg) {
 				step = (step + 1) % _steps;
 			}
 			else {
-				#define AMAX ((double)0.5)
 				double amp = AMAX;
 				int delay_dur = (_width * sampleFrequency / 1000) * _delay / 100;
 				int delay_start = 0;
@@ -154,6 +171,8 @@ int process_audio( jack_nframes_t nframes, void *arg) {
 					s = 2 * ((double)(tri) / bytesPerPeriod) - 1;
 				}
 				s *= amp * _volume / 100;
+
+				s = filter( s, _cutoff);
 #if 0
 				printf( "pos=%d bPerPer=%d w=%d attack=%d/%d@%d:%d release=%d/%d@%d:%d amp=%.1f s=%.1f\n",
 					pos, bytesPerPeriod, _width, _attack, attack_dur, attack_start, attack_end, _release, release_dur, release_start, release_end, amp, s);
