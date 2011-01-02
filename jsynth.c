@@ -47,7 +47,11 @@ int __tempo = 140;			// bpm
 int __steps = 16;			// n
 int __tune = 50;			// %
 int __cutoff = 100;			// %
-int __square_not_tri = 1;	// 0=tri, 1=square
+int __reso = 0;				// %
+int __envmod = 0;			// %
+//int __decay = 100;		// %
+int __accent = 100;			// %
+int __square_not_tri = 0;	// 0=tri, 1=square
 int __sine_not_square = 0;	// 0=square, 1=sine
 
 int __delay = 0;			// % of width
@@ -55,7 +59,7 @@ int __attack = 0;			// % of width
 int __hold = 0;				// % of width
 int __decay = 0;			// % of width
 int __sustain = 50;			// % of amplitude max
-int __release = 0;			// % of width
+int __release = 5;			// % of width
 
 int next_t = 0;				// sample
 int t = 0;					// sample
@@ -98,9 +102,6 @@ int process_audio( jack_nframes_t nframes, void *arg) {
 	int _cutoff = __cutoff;						// %
 	int _period = 750 * 20 / _tempo;			// ms
 	int _width = _period / 2;					// ms
-	if (pattern[step].slide) {
-		_width = _period - 1;
-	}
 	int _square_not_tri = __square_not_tri;
 	int _sine_not_square = __sine_not_square;
 	int _delay = __delay;						// %
@@ -109,10 +110,14 @@ int process_audio( jack_nframes_t nframes, void *arg) {
 	int _decay = __decay;						// %
 	int _sustain = __sustain;					// %
 	int _release = __release;					// %
+	if (pattern[step].slide) {
+		_width = _period - 1;
+		_release = 5;
+	}
 	if (pattern[step].accent) {
-		_attack = 0;
-		_hold = 0;
-		_decay = 100;
+		_attack = 10;
+		_hold = 10;
+		_decay = 80;
 	}
 	unsigned int bytesPerPeriod = sampleFrequency / _freq;
 	for (i = 0; i < nframes; i++) {
