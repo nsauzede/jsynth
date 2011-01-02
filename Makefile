@@ -1,6 +1,7 @@
 TARGET=jsynth
 
 CFLAGS=-Wall -Werror
+CFLAGS+=-O2
 
 CFLAGS+=`sdl-config --cflags`
 LDFLAGS+=`sdl-config --libs`

@@ -61,17 +61,14 @@ int pos = -1;				// sample
 int step = -1;
 int done = 0;
 
-sample_t filter( sample_t s, int cutoff)
+double filter( double s, double fc)
 {
-	sample_t result = 0;
-	static sample_t last = 0;
-#define FILTER_MIN ((double)2)
-#define FILTER_MAX ((double)200)
-	sample_t fc = (double)FILTER_MIN + (double)cutoff * (FILTER_MAX - FILTER_MIN) / (double)100;
-	sample_t rc = (double)1 / 2 / M_PI / fc;
-	sample_t dt = (double)1 / sampleFrequency;
-	sample_t a = dt / (rc + dt);
-	result = a * s + (1 - a) * last;
+	double result = 0;
+	static double last = 0;
+	double rc = (double)1 / 2 / M_PI / fc;
+	double dt = (double)1 / sampleFrequency;
+	double a = dt / (rc + dt);
+	result = a * s + ((double)1 - a) * last;
 	last = result;
 	return result;
 }
@@ -172,7 +169,10 @@ int process_audio( jack_nframes_t nframes, void *arg) {
 				}
 				s *= amp * _volume / 100;
 
-				s = filter( s, _cutoff);
+#define FILTER_MIN ((double)2)
+#define FILTER_MAX ((double)200)
+				double fc = (double)FILTER_MIN + (double)_cutoff * (FILTER_MAX - FILTER_MIN) / (double)100;
+				s = filter( s, fc);
 #if 0
 				printf( "pos=%d bPerPer=%d w=%d attack=%d/%d@%d:%d release=%d/%d@%d:%d amp=%.1f s=%.1f\n",
 					pos, bytesPerPeriod, _width, _attack, attack_dur, attack_start, attack_end, _release, release_dur, release_start, release_end, amp, s);
