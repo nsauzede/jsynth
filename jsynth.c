@@ -15,6 +15,9 @@ typedef struct {
 } step_t;
 
 #define MAX_STEPS 16
+#define AMAX ((double)1.0)
+#define FILTER_MIN ((double)50)
+#define FILTER_MAX ((double)200)
 step_t pattern[MAX_STEPS] = {
 //    n  o  p  a  s
 // this pattern by kurt kurasaki - Peff.com
@@ -38,7 +41,6 @@ step_t pattern[MAX_STEPS] = {
 
 int sampleFrequency = 44100;
 typedef jack_default_audio_sample_t sample_t;
-#define AMAX ((double)0.9)
 
 int __volume = 100;			// %
 int __tempo = 140;			// bpm
@@ -52,7 +54,7 @@ int __delay = 0;			// % of width
 int __attack = 0;			// % of width
 int __hold = 0;				// % of width
 int __decay = 0;			// % of width
-int __sustain = 100;			// % of amplitude max
+int __sustain = 50;			// % of amplitude max
 int __release = 0;			// % of width
 
 int next_t = 0;				// sample
@@ -104,6 +106,11 @@ int process_audio( jack_nframes_t nframes, void *arg) {
 	int _decay = __decay;						// %
 	int _sustain = __sustain;					// %
 	int _release = __release;					// %
+	if (pattern[step].accent) {
+		_attack = 0;
+		_hold = 0;
+		_decay = 100;
+	}
 	unsigned int bytesPerPeriod = sampleFrequency / _freq;
 	for (i = 0; i < nframes; i++) {
 		sample_t s = 0;
@@ -169,8 +176,6 @@ int process_audio( jack_nframes_t nframes, void *arg) {
 				}
 				s *= amp * _volume / 100;
 
-#define FILTER_MIN ((double)2)
-#define FILTER_MAX ((double)200)
 				double fc = (double)FILTER_MIN + (double)_cutoff * (FILTER_MAX - FILTER_MIN) / (double)100;
 				s = filter( s, fc);
 #if 0
