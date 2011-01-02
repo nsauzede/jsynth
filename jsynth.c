@@ -98,6 +98,9 @@ int process_audio( jack_nframes_t nframes, void *arg) {
 	int _cutoff = __cutoff;						// %
 	int _period = 750 * 20 / _tempo;			// ms
 	int _width = _period / 2;					// ms
+	if (pattern[step].slide) {
+		_width = _period - 1;
+	}
 	int _square_not_tri = __square_not_tri;
 	int _sine_not_square = __sine_not_square;
 	int _delay = __delay;						// %
