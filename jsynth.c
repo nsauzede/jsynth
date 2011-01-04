@@ -208,7 +208,9 @@ int main( int argc, char *argv[]) {
 	}
 	SDL_Init( SDL_INIT_VIDEO);
 	atexit( SDL_Quit);
-	SDL_Surface *screen = SDL_SetVideoMode( 100, 100, 32, 0);
+	int ww = 100;
+	int hh = 100;
+	SDL_Surface *screen = SDL_SetVideoMode( ww, hh, 32, 0);
 	if (!screen) {
 		fprintf(stderr, "Unable to open video: %s\n", SDL_GetError());
 		exit(1);
@@ -319,7 +321,35 @@ int main( int argc, char *argv[]) {
 				__square_not_tri, __sine_not_square, __tempo, __steps, __delay, __attack, __hold, __decay, __sustain, __release, __cutoff, __volume);
 			dirty = 0;
 		}
-		SDL_Delay( 100);
+		int _steps = __steps;
+		int _step = step;
+		static int _old_step = -1;
+		int x, y;
+		int w, h;
+		w = ww / _steps;
+		h = w;
+		SDL_Rect rect;
+		rect.x = 0;
+		rect.y = 0;
+		rect.w = ww;
+		rect.h = h;
+		Uint32 black, red;
+		black = SDL_MapRGB( screen->format, 0, 0, 0);
+		red = SDL_MapRGB( screen->format, 255, 0, 0);
+		SDL_FillRect( screen, &rect, black);
+		rect.w = 1;
+		rect.h = 1;
+		for (y = 0; y < h; y++) {
+			rect.y = y;
+			for (x = 0; x < w; x++) {
+				rect.x = x + _step * w;
+				SDL_FillRect( screen, &rect, red);
+			}
+		}
+		SDL_UpdateRect( screen, 0, 0, 0, 0);
+		if (_old_step == _step)
+			SDL_Delay( 1);
+		_old_step = _step;
 	}
 	SDL_FreeSurface( screen);
 	return 0;
