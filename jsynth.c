@@ -270,10 +270,12 @@ int main( int argc, char *argv[]) {
 							__tempo++;
 							break;
 						case SDLK_s:
-							__steps--;
+							if (__steps > 1)
+								__steps--;
 							break;
 						case SDLK_z:
-							__steps++;
+							if (__steps < MAX_STEPS)
+								__steps++;
 							break;
 						case SDLK_d:
 							__delay--;
@@ -323,6 +325,12 @@ int main( int argc, char *argv[]) {
 						case SDLK_p:
 							__volume++;
 							break;
+						case SDLK_c:
+							__tune--;
+							break;
+						case SDLK_v:
+							__tune++;
+							break;
 						default:
 							break;
 					}
@@ -330,8 +338,8 @@ int main( int argc, char *argv[]) {
 			}
 		}
 		if (dirty) {
-			printf( "Wsqu=%d Xsin=%d Atempo=%d Zsteps=%d Edelay=%d Rattack=%d Thold=%d Ydecay=%d Usustain=%d Irelease=%d Ocutoff=%d Pvol=%d\n",
-				__square_not_tri, __sine_not_square, __tempo, __steps, __delay, __attack, __hold, __decay, __sustain, __release, __cutoff, __volume);
+			printf( "Wsqu=%d Xsin=%d Atempo=%d Zsteps=%d Edelay=%d Rattack=%d Thold=%d Ydecay=%d Usustain=%d Irelease=%d Ocutoff=%d Pvol=%d Vtune=%d\n",
+				__square_not_tri, __sine_not_square, __tempo, __steps, __delay, __attack, __hold, __decay, __sustain, __release, __cutoff, __volume, __tune);
 			dirty = 0;
 		}
 		int _steps = __steps;
