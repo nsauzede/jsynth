@@ -198,6 +198,19 @@ int process_audio( jack_nframes_t nframes, void *arg) {
 	}
 	return 0;
 }
+void fillbox( SDL_Surface *screen, SDL_Rect *_rect, Uint32 col) {
+	SDL_Rect rect;
+	rect.w = 1;
+	rect.h = 1;
+	int x, y;
+	for (y = 0; y < _rect->h; y++) {
+		rect.y = y + _rect->y;
+		for (x = 0; x < _rect->w; x++) {
+			rect.x = x + _rect->x;
+			SDL_FillRect( screen, &rect, col);
+		}
+	}
+}
 int main( int argc, char *argv[]) {
 	int arg = 1;
 	if (argc > arg) {
@@ -324,28 +337,26 @@ int main( int argc, char *argv[]) {
 		int _steps = __steps;
 		int _step = step;
 		static int _old_step = -1;
-		int x, y;
 		int w, h;
 		w = ww / _steps;
 		h = w;
 		SDL_Rect rect;
+		Uint32 black, red, blue;
+		black = SDL_MapRGB( screen->format, 0, 0, 0);
+		red = SDL_MapRGB( screen->format, 255, 0, 0);
+		blue = SDL_MapRGB( screen->format, 0, 0, 255);
 		rect.x = 0;
 		rect.y = 0;
 		rect.w = ww;
-		rect.h = h;
-		Uint32 black, red;
-		black = SDL_MapRGB( screen->format, 0, 0, 0);
-		red = SDL_MapRGB( screen->format, 255, 0, 0);
+		rect.h = hh;
 		SDL_FillRect( screen, &rect, black);
-		rect.w = 1;
-		rect.h = 1;
-		for (y = 0; y < h; y++) {
-			rect.y = y;
-			for (x = 0; x < w; x++) {
-				rect.x = x + _step * w;
-				SDL_FillRect( screen, &rect, red);
-			}
-		}
+		rect.x = _step * w;
+		rect.y = 0;
+		rect.w = w;
+		rect.h = h;
+		fillbox( screen, &rect, red);
+		rect.y = (double)hh - (pattern[_step].note + 13 * pattern[_step].octave + 1) * (hh - h) / (13 * 3);
+		fillbox( screen, &rect, blue);
 		SDL_UpdateRect( screen, 0, 0, 0, 0);
 		if (_old_step == _step)
 			SDL_Delay( 1);
