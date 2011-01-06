@@ -340,6 +340,7 @@ int main( int argc, char *argv[]) {
 		if (dirty) {
 			printf( "Wsqu=%d Xsin=%d Atempo=%d Zsteps=%d Edelay=%d Rattack=%d Thold=%d Ydecay=%d Usustain=%d Irelease=%d Ocutoff=%d Pvol=%d Vtune=%d\n",
 				__square_not_tri, __sine_not_square, __tempo, __steps, __delay, __attack, __hold, __decay, __sustain, __release, __cutoff, __volume, __tune);
+			fflush( stdout);
 			dirty = 0;
 		}
 		int _steps = __steps;
