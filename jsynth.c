@@ -15,12 +15,28 @@ typedef struct {
 } step_t;
 
 #define MAX_STEPS 16
+#define MAX_PATTERNS 8
+#define MAX_BANKS 4
+
+typedef step_t pattern_t[MAX_STEPS];
+typedef pattern_t bank_t[MAX_PATTERNS];
+
 #define AMAX ((double)1.0)
 #define FILTER_MIN ((double)50)
 #define FILTER_MAX ((double)200)
-step_t pattern[MAX_STEPS] = {
+#if 0
+#define TEMPO 140
+#define TUNE 50
+#define STEPS 16
+#define CUTOFF 100
+#define ACCENT 100
+#define SQUARE 0
+#define SINE 0
+// this song inspired by kurt kurasaki - Peff.com
+bank_t banks[MAX_BANKS] = {
+{
+{
 //    n  o  p  a  s
-// this pattern by kurt kurasaki - Peff.com
 	{ 0, 0, 1, 0, 0},		// step1
 	{ 0, 1, 1, 0, 0},		// step2
 	{ 0, 1, 1, 0, 0},		// step3
@@ -37,22 +53,170 @@ step_t pattern[MAX_STEPS] = {
 	{ 0, 1, 1, 0, 0},		// step14
 	{ 0, 1, 1, 0, 0},		// step15
 	{ 0, 1, 0, 0, 0},		// step16
+}
+}
 };
+int song[] = {
+	0,
+};
+#else
+#define TEMPO 290
+#define TUNE 70
+#define STEPS 8
+#define CUTOFF 70
+#define ACCENT 60
+#define SQUARE 1
+#define SINE 0
+// this song inspired by legend b - lost in love
+bank_t banks[MAX_BANKS] = {
+{
+{
+//    n  o  p  a  s
+	{ 9, 2, 1, 1, 0},		// step1
+	{ 0, 2, 0, 0, 0},		// step2
+	{ 9, 2, 1, 1, 0},		// step3
+	{ 0, 2, 0, 0, 0},		// step4
+	{ 9, 2, 1, 1, 1},		// step5
+	{ 0, 2, 0, 0, 0},		// step6
+	{ 0, 2, 0, 0, 0},		// step7
+	{ 0, 2, 0, 0, 0},		// step8
+	{ 9, 2, 1, 1, 0},		// step9
+	{ 0, 2, 0, 0, 0},		// step10
+	{ 9, 2, 1, 1, 0},		// step11
+	{ 0, 2, 0, 0, 0},		// step12
+	{ 9, 2, 1, 1, 1},		// step13
+	{ 0, 2, 0, 0, 0},		// step14
+	{ 0, 2, 0, 0, 0},		// step15
+	{ 0, 2, 0, 0, 0},		// step16
+},
+{
+//    n  o  p  a  s
+	{11, 2, 1, 1, 0},		// step1
+	{ 0, 2, 0, 0, 0},		// step2
+	{11, 2, 1, 1, 0},		// step3
+	{ 0, 2, 0, 0, 0},		// step4
+	{11, 2, 1, 1, 1},		// step5
+	{ 0, 2, 0, 0, 0},		// step6
+	{ 0, 2, 0, 0, 0},		// step7
+	{ 0, 2, 0, 0, 0},		// step8
+	{11, 2, 1, 1, 0},		// step9
+	{ 0, 2, 0, 0, 0},		// step10
+	{11, 2, 1, 1, 0},		// step11
+	{ 0, 2, 0, 0, 0},		// step12
+	{11, 2, 1, 1, 1},		// step13
+	{ 0, 2, 0, 0, 0},		// step14
+	{ 0, 2, 0, 0, 0},		// step15
+	{ 0, 2, 0, 0, 0},		// step16
+},
+{
+//    n  o  p  a  s
+	{ 8, 2, 1, 1, 0},		// step1
+	{ 0, 2, 0, 0, 0},		// step2
+	{ 8, 2, 1, 1, 0},		// step3
+	{ 0, 2, 0, 0, 0},		// step4
+	{ 8, 2, 1, 1, 1},		// step5
+	{ 0, 2, 0, 0, 0},		// step6
+	{ 0, 2, 0, 0, 0},		// step7
+	{ 0, 2, 0, 0, 0},		// step8
+	{ 8, 2, 1, 1, 0},		// step9
+	{ 0, 2, 0, 0, 0},		// step10
+	{ 8, 2, 1, 1, 0},		// step11
+	{ 0, 2, 0, 0, 0},		// step12
+	{ 8, 2, 1, 1, 1},		// step13
+	{ 0, 2, 0, 0, 0},		// step14
+	{ 0, 2, 0, 0, 0},		// step15
+	{ 0, 2, 0, 0, 0},		// step16
+},
+{
+//    n  o  p  a  s
+	{ 6, 2, 1, 1, 0},		// step1
+	{ 0, 2, 0, 0, 0},		// step2
+	{ 6, 2, 1, 1, 0},		// step3
+	{ 0, 2, 0, 0, 0},		// step4
+	{ 6, 2, 1, 1, 1},		// step5
+	{ 0, 2, 0, 0, 0},		// step6
+	{ 0, 2, 0, 0, 0},		// step7
+	{ 0, 2, 0, 0, 0},		// step8
+	{ 6, 2, 1, 1, 0},		// step9
+	{ 0, 2, 0, 0, 0},		// step10
+	{ 6, 2, 1, 1, 0},		// step11
+	{ 0, 2, 0, 0, 0},		// step12
+	{ 6, 2, 1, 1, 1},		// step13
+	{ 0, 2, 0, 0, 0},		// step14
+	{ 0, 2, 0, 0, 0},		// step15
+	{ 0, 2, 0, 0, 0},		// step16
+},
+{
+//    n  o  p  a  s
+	{ 4, 2, 1, 1, 0},		// step1
+	{ 0, 2, 0, 0, 0},		// step2
+	{ 4, 2, 1, 1, 0},		// step3
+	{ 0, 2, 0, 0, 0},		// step4
+	{ 4, 2, 1, 1, 1},		// step5
+	{ 0, 2, 0, 0, 0},		// step6
+	{ 0, 2, 0, 0, 0},		// step7
+	{ 0, 2, 0, 0, 0},		// step8
+	{ 4, 2, 1, 1, 0},		// step9
+	{ 0, 2, 0, 0, 0},		// step10
+	{ 4, 2, 1, 1, 0},		// step11
+	{ 0, 2, 0, 0, 0},		// step12
+	{ 4, 2, 1, 1, 1},		// step13
+	{ 0, 2, 0, 0, 0},		// step14
+	{ 0, 2, 0, 0, 0},		// step15
+	{ 0, 2, 0, 0, 0},		// step16
+},
+{
+//    n  o  p  a  s
+	{ 4, 2, 0, 1, 0},		// step1
+	{ 0, 2, 0, 0, 0},		// step2
+	{ 4, 2, 0, 1, 0},		// step3
+	{ 0, 2, 0, 0, 0},		// step4
+	{ 4, 2, 0, 1, 1},		// step5
+	{ 0, 2, 0, 0, 0},		// step6
+	{ 0, 2, 0, 0, 0},		// step7
+	{ 0, 2, 0, 0, 0},		// step8
+	{ 4, 2, 0, 1, 0},		// step9
+	{ 0, 2, 0, 0, 0},		// step10
+	{ 4, 2, 0, 1, 0},		// step11
+	{ 0, 2, 0, 0, 0},		// step12
+	{ 4, 2, 0, 1, 1},		// step13
+	{ 0, 2, 0, 0, 0},		// step14
+	{ 0, 2, 0, 0, 0},		// step15
+	{ 0, 2, 0, 0, 0},		// step16
+}
+}
+};
+int song[] = {
+	0, 0, 0, 0, 0, 0, 0, 0,
+	1, 1, 1, 1,
+	2, 2, 2, 2,
+	0, 0, 0, 0, 0, 0, 0, 0,
+	1, 1, 1, 1,
+	2, 2, 2, 2,
+	3, 3, 3, 3,	3, 3, 3, 3,
+	2, 2, 2, 2,
+	4, 4, 4, 4,
+	3, 3, 3, 3,	3, 3, 3, 3,
+	2, 2, 2, 2,
+	0, 0, 0,
+//	1,
+	5, 5,
+};
+#endif
 
 int sampleFrequency = 44100;
 typedef jack_default_audio_sample_t sample_t;
 
 int __volume = 100;			// %
-int __tempo = 140;			// bpm
-int __steps = 16;			// n
-int __tune = 50;			// %
-int __cutoff = 100;			// %
+int __tempo = TEMPO;		// bpm
+int __steps = STEPS;		// n
+int __tune = TUNE;			// %
+int __cutoff = CUTOFF;		// %
 int __reso = 0;				// %
 int __envmod = 0;			// %
-//int __decay = 100;		// %
-int __accent = 100;			// %
-int __square_not_tri = 0;	// 0=tri, 1=square
-int __sine_not_square = 0;	// 0=square, 1=sine
+int __accent = ACCENT;		// %
+int __square_not_tri = SQUARE;	// 0=tri, 1=square
+int __sine_not_square = SINE;	// 0=square, 1=sine
 
 int __delay = 0;			// % of width
 int __attack = 0;			// % of width
@@ -65,7 +229,11 @@ int next_t = 0;				// sample
 int t = 0;					// sample
 int pos = -1;				// sample
 int step = -1;
+int pattern = 0;
+int bank = 0;
 int done = 0;
+int bar = 0;
+int nbars = sizeof( song) / sizeof( song[0]);
 
 double filter( double s, double fc)
 {
@@ -89,14 +257,6 @@ int process_audio( jack_nframes_t nframes, void *arg) {
 	int octave = 0;
 	int n = 0;
 	int _freq = 1;
-	if (!pattern[step].play_not_silence || step == -1) {
-		_volume = 0;
-	} else {
-		note = pattern[step].note;
-		octave = pattern[step].octave;
-		n = note + (12 * octave) + ((double)24 * _tune / 100);
-		_freq = (double)16.3516 * pow( (double)1.0594630943592952645618252949463, n);		// Hz
-	}
 	int _tempo = __tempo;
 	int _steps = __steps;
 	int _cutoff = __cutoff;						// %
@@ -110,14 +270,22 @@ int process_audio( jack_nframes_t nframes, void *arg) {
 	int _decay = __decay;						// %
 	int _sustain = __sustain;					// %
 	int _release = __release;					// %
-	if (pattern[step].slide) {
-		_width = _period - 1;
-		_release = 5;
-	}
-	if (pattern[step].accent) {
-		_attack = 10;
-		_hold = 10;
-		_decay = 80;
+	if (step == -1 || !banks[bank][pattern][step].play_not_silence) {
+		_volume = 0;
+	} else {
+		note = banks[bank][pattern][step].note;
+		octave = banks[bank][pattern][step].octave;
+		n = note + (12 * octave) + ((double)24 * _tune / 100);
+		_freq = (double)16.3516 * pow( (double)1.0594630943592952645618252949463, n);		// Hz
+		if (banks[bank][pattern][step].slide) {
+			_width = _period - 1;
+			_release = 5;
+		}
+		if (banks[bank][pattern][step].accent) {
+			_attack = 10;
+			_hold = 10;
+			_decay = 80;
+		}
 	}
 	unsigned int bytesPerPeriod = sampleFrequency / _freq;
 	for (i = 0; i < nframes; i++) {
@@ -131,6 +299,11 @@ int process_audio( jack_nframes_t nframes, void *arg) {
 			if (pos >= (_width * sampleFrequency / 1000)) {
 				next_t = t + (_period - _width) * sampleFrequency / 1000;
 				pos = -1;
+				if ((step + 1) >= _steps)
+				{
+					bar = (bar + 1) % nbars;
+					pattern = song[bar];
+				}
 				step = (step + 1) % _steps;
 			}
 			else {
@@ -364,7 +537,7 @@ int main( int argc, char *argv[]) {
 		rect.w = w;
 		rect.h = h;
 		fillbox( screen, &rect, red);
-		rect.y = (double)hh - (pattern[_step].note + 13 * pattern[_step].octave + 1) * (hh - h) / (13 * 3);
+		rect.y = (double)hh - (banks[bank][pattern][_step].note + 13 * banks[bank][pattern][_step].octave + 1) * (hh - h) / (13 * 3);
 		fillbox( screen, &rect, blue);
 		SDL_UpdateRect( screen, 0, 0, 0, 0);
 		if (_old_step == _step)
