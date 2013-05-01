@@ -59,6 +59,33 @@ bank_t banks[MAX_BANKS] = {
 int song[] = {
 	0,
 };
+#elif 1
+#define TEMPO 140
+#define TUNE 50
+#define STEPS 8
+#define CUTOFF 100
+#define ACCENT 100
+#define SQUARE 0
+#define SINE 0
+// this pattern sounds like "pink floyd - on the run"
+bank_t banks[MAX_BANKS] = {
+{
+{
+//    n  o  p  a  s
+	{ 7, 0, 1, 0, 0},		// step1
+	{11, 0, 1, 0, 0},		// step2
+	{ 0, 0, 1, 0, 0},		// step3
+	{11, 0, 1, 0, 0},		// step4
+	{ 5, 1, 1, 0, 0},		// step5
+	{ 4, 1, 1, 0, 0},		// step6
+	{ 5, 1, 1, 0, 0},		// step7
+	{ 7, 1, 1, 0, 0},		// step8
+}
+}
+};
+int song[] = {
+	0,
+};
 #else
 #define TEMPO 290
 #define TUNE 70
@@ -207,6 +234,7 @@ int song[] = {
 int sampleFrequency = 44100;
 typedef jack_default_audio_sample_t sample_t;
 
+int __play_not_pause = 1;
 int __volume = 100;			// %
 int __tempo = TEMPO;		// bpm
 int __steps = STEPS;		// n
@@ -270,7 +298,7 @@ int process_audio( jack_nframes_t nframes, void *arg) {
 	int _decay = __decay;						// %
 	int _sustain = __sustain;					// %
 	int _release = __release;					// %
-	if (step == -1 || !banks[bank][pattern][step].play_not_silence) {
+	if (step == -1 || !banks[bank][pattern][step].play_not_silence || !__play_not_pause) {
 		_volume = 0;
 	} else {
 		note = banks[bank][pattern][step].note;
@@ -304,7 +332,8 @@ int process_audio( jack_nframes_t nframes, void *arg) {
 					bar = (bar + 1) % nbars;
 					pattern = song[bar];
 				}
-				step = (step + 1) % _steps;
+				if (__play_not_pause)
+					step = (step + 1) % _steps;
 			}
 			else {
 				double amp = AMAX;
@@ -394,6 +423,8 @@ int main( int argc, char *argv[]) {
 	}
 	SDL_Init( SDL_INIT_VIDEO);
 	atexit( SDL_Quit);
+	freopen( "CON", "w", stdout );
+	freopen( "CON", "w", stderr );
 	int ww = 100;
 	int hh = 100;
 	SDL_Surface *screen = SDL_SetVideoMode( ww, hh, 32, 0);
@@ -429,6 +460,11 @@ int main( int argc, char *argv[]) {
 					switch (event.key.keysym.sym) {
 						case SDLK_ESCAPE:
 							done = 1;
+							break;
+						case SDLK_SPACE:
+							__play_not_pause = 1 - __play_not_pause;
+							if (__play_not_pause)
+								step = 0;
 							break;
 						case SDLK_w:
 							__square_not_tri = 1 - __square_not_tri;
@@ -511,8 +547,8 @@ int main( int argc, char *argv[]) {
 			}
 		}
 		if (dirty) {
-			printf( "Wsqu=%d Xsin=%d Atempo=%d Zsteps=%d Edelay=%d Rattack=%d Thold=%d Ydecay=%d Usustain=%d Irelease=%d Ocutoff=%d Pvol=%d Vtune=%d\n",
-				__square_not_tri, __sine_not_square, __tempo, __steps, __delay, __attack, __hold, __decay, __sustain, __release, __cutoff, __volume, __tune);
+			printf( "%cWsqu=%d Xsin=%d Atempo=%d Zsteps=%d Edelay=%d Rattack=%d Thold=%d Ydecay=%d Usustain=%d Irelease=%d Ocutoff=%d Pvol=%d Vtune=%d\n",
+				__play_not_pause?'=':'-', __square_not_tri, __sine_not_square, __tempo, __steps, __delay, __attack, __hold, __decay, __sustain, __release, __cutoff, __volume, __tune);
 			fflush( stdout);
 			dirty = 0;
 		}
