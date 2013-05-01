@@ -22,8 +22,8 @@ typedef step_t pattern_t[MAX_STEPS];
 typedef pattern_t bank_t[MAX_PATTERNS];
 
 #define AMAX ((double)1.0)
-#define FILTER_MIN ((double)50)
-#define FILTER_MAX ((double)200)
+#define FILTER_MIN ((double)500)
+#define FILTER_MAX ((double)3000)
 #if 0
 #define TEMPO 140
 #define TUNE 50
@@ -263,7 +263,9 @@ int done = 0;
 int bar = 0;
 int nbars = sizeof( song) / sizeof( song[0]);
 
-double filter( double s, double fc)
+#if 0
+// this is some kind of half-working passive LPF.. (no resonance)
+// double filter( double s, double fc)
 {
 	double result = 0;
 	static double last = 0;
@@ -274,6 +276,39 @@ double filter( double s, double fc)
 	last = result;
 	return result;
 }
+#else
+// this is an attempt of SVF LPF with resonnance (see http://www.fpga.synth.net/pmwiki/pmwiki.php?n=FPGASynth.SVF)
+double filter( double input, double fc)
+{
+	static double output = 0.0;
+
+	static double fb1 = 0.0, fb2 = 0.0;
+	static double sum1, sum2, sum3;
+	double f;
+	double q, Q;
+	double mult1, mult2, multq;
+	f = 2 * sin( M_PI * fc / sampleFrequency);
+	Q = 0.5 + __reso * 1.8 / 100;
+	q = 1.0 / Q;
+
+	multq = fb1 * q;
+	
+	sum1 = input + (-multq) + (-output);
+	
+	mult1 = f * sum1;
+	sum2 = mult1 + fb1;
+
+	mult2 = f * fb1;
+	sum3 = mult2 + fb2;
+
+	fb1 = sum2;
+	fb2 = sum3;
+
+	output = sum3;
+
+	return output;
+}
+#endif
 
 int process_audio( jack_nframes_t nframes, void *arg) {
 	jack_port_t *port = arg;
@@ -540,6 +575,12 @@ int main( int argc, char *argv[]) {
 						case SDLK_v:
 							__tune++;
 							break;
+						case SDLK_b:
+							__reso++;
+							break;
+						case SDLK_n:
+							__reso--;
+							break;
 						default:
 							break;
 					}
@@ -547,8 +588,8 @@ int main( int argc, char *argv[]) {
 			}
 		}
 		if (dirty) {
-			printf( "%cWsqu=%d Xsin=%d Atempo=%d Zsteps=%d Edelay=%d Rattack=%d Thold=%d Ydecay=%d Usustain=%d Irelease=%d Ocutoff=%d Pvol=%d Vtune=%d\n",
-				__play_not_pause?'=':'-', __square_not_tri, __sine_not_square, __tempo, __steps, __delay, __attack, __hold, __decay, __sustain, __release, __cutoff, __volume, __tune);
+			printf( "%cWsqu=%d Xsin=%d Atempo=%d Zsteps=%d Edelay=%d Rattack=%d Thold=%d Ydecay=%d Usustain=%d Irelease=%d Ocutoff=%d Breso=%d Pvol=%d Vtune=%d\n",
+				__play_not_pause?'=':'-', __square_not_tri, __sine_not_square, __tempo, __steps, __delay, __attack, __hold, __decay, __sustain, __release, __cutoff, __reso, __volume, __tune);
 			fflush( stdout);
 			dirty = 0;
 		}
