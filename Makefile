@@ -6,7 +6,8 @@ endif
 TARGET=jsynth
 
 CFLAGS=-Wall -Werror
-CFLAGS+=-O2
+#CFLAGS+=-O2
+CFLAGS+=-g -O0
 
 CFLAGS+=`sdl-config --cflags`
 LDFLAGS+=`sdl-config --libs` -mno-windows

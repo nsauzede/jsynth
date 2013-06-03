@@ -449,23 +449,14 @@ void fillbox( SDL_Surface *screen, SDL_Rect *_rect, Uint32 col) {
 	}
 }
 int main( int argc, char *argv[]) {
+	freopen( "CON", "w", stdout );
+	freopen( "CON", "w", stderr );
 	int arg = 1;
 	if (argc > arg) {
 		sscanf( argv[arg++], "%d", &__tune);
 	if (argc > arg) {
 		sscanf( argv[arg++], "%d", &__square_not_tri);
 	}
-	}
-	SDL_Init( SDL_INIT_VIDEO);
-	atexit( SDL_Quit);
-	freopen( "CON", "w", stdout );
-	freopen( "CON", "w", stderr );
-	int ww = 100;
-	int hh = 100;
-	SDL_Surface *screen = SDL_SetVideoMode( ww, hh, 32, 0);
-	if (!screen) {
-		fprintf(stderr, "Unable to open video: %s\n", SDL_GetError());
-		exit(1);
 	}
 	jack_status_t status;
 	jack_client_t *client = jack_client_open( "metro", JackNoStartServer, &status);
@@ -478,6 +469,18 @@ int main( int argc, char *argv[]) {
 		jack_activate( client);
 	} else {
 		printf( "jack server not running ?\n");
+		exit( 1);
+	}
+	SDL_Init( SDL_INIT_VIDEO);
+	atexit( SDL_Quit);
+	freopen( "CON", "w", stdout );
+	freopen( "CON", "w", stderr );
+	int ww = 100;
+	int hh = 100;
+	SDL_Surface *screen = SDL_SetVideoMode( ww, hh, 32, 0);
+	if (!screen) {
+		fprintf(stderr, "Unable to open video: %s\n", SDL_GetError());
+		exit(1);
 	}
 	SDL_EnableKeyRepeat( SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
 	int dirty = 1;
