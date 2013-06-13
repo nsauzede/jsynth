@@ -485,6 +485,7 @@ int main( int argc, char *argv[]) {
 	SDL_EnableKeyRepeat( SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
 	int dirty = 1;
 	int done = 0;
+	int shift = 0;
 	while (!done) {
 		SDL_Event event;
 		while (!done && SDL_PollEvent( &event)) {
@@ -493,9 +494,23 @@ int main( int argc, char *argv[]) {
 					done = 1;
 				default:
 					break;
+				case SDL_KEYUP:
+					switch (event.key.keysym.sym) {
+						case SDLK_LSHIFT:
+						case SDLK_RSHIFT:
+							shift = 0;
+							break;
+						default:
+							break;
+					}
+					break;
 				case SDL_KEYDOWN:
 					dirty = 1;
 					switch (event.key.keysym.sym) {
+						case SDLK_LSHIFT:
+						case SDLK_RSHIFT:
+							shift = 1;
+							break;
 						case SDLK_ESCAPE:
 							done = 1;
 							break;
@@ -510,79 +525,83 @@ int main( int argc, char *argv[]) {
 						case SDLK_x:
 							__sine_not_square = 1 - __sine_not_square;
 							break;
-						case SDLK_q:
-							__tempo--;
-							break;
 						case SDLK_a:
-							__tempo++;
-							break;
-						case SDLK_s:
-							if (__steps > 1)
-								__steps--;
+							if (shift)
+								__tempo++;
+							else
+								__tempo--;
 							break;
 						case SDLK_z:
-							if (__steps < MAX_STEPS)
-								__steps++;
-							break;
-						case SDLK_d:
-							__delay--;
+							if (shift)
+							{
+								if (__steps < MAX_STEPS)
+									__steps++;
+							}
+							else
+							{
+								if (__steps > 1)
+									__steps--;
+							}
 							break;
 						case SDLK_e:
-							__delay++;
-							break;
-						case SDLK_f:
-							__attack--;
+							if (shift)
+								__delay++;
+							else
+								__delay--;
 							break;
 						case SDLK_r:
-							__attack++;
-							break;
-						case SDLK_g:
-							__hold--;
+							if (shift)
+								__attack++;
+							else
+								__attack--;
 							break;
 						case SDLK_t:
-							__hold++;
-							break;
-						case SDLK_h:
-							__decay--;
+							if (shift)
+								__hold++;
+							else
+								__hold--;
 							break;
 						case SDLK_y:
-							__decay++;
-							break;
-						case SDLK_j:
-							__sustain--;
+							if (shift)
+								__decay++;
+							else
+								__decay--;
 							break;
 						case SDLK_u:
-							__sustain++;
-							break;
-						case SDLK_k:
-							__release--;
+							if (shift)
+								__sustain++;
+							else
+								__sustain--;
 							break;
 						case SDLK_i:
-							__release++;
-							break;
-						case SDLK_l:
-							__cutoff--;
+							if (shift)
+								__release++;
+							else
+								__release--;
 							break;
 						case SDLK_o:
-							__cutoff++;
-							break;
-						case SDLK_m:
-							__volume--;
+							if (shift)
+								__cutoff++;
+							else
+								__cutoff--;
 							break;
 						case SDLK_p:
-							__volume++;
-							break;
-						case SDLK_c:
-							__tune--;
+							if (shift)
+								__volume++;
+							else
+								__volume--;
 							break;
 						case SDLK_v:
-							__tune++;
+							if (shift)
+								__tune++;
+							else
+								__tune--;
 							break;
 						case SDLK_b:
-							__reso++;
-							break;
-						case SDLK_n:
-							__reso--;
+							if (shift)
+								__reso++;
+							else
+								__reso--;
 							break;
 						default:
 							break;
