@@ -492,13 +492,13 @@ int main( int argc, char *argv[]) {
 			switch (event.type) {
 				case SDL_QUIT:
 					done = 1;
-				default:
 					break;
 				case SDL_KEYUP:
 					switch (event.key.keysym.sym) {
 						case SDLK_LSHIFT:
 						case SDLK_RSHIFT:
 							shift = 0;
+							dirty = 0;
 							break;
 						default:
 							break;
@@ -510,6 +510,7 @@ int main( int argc, char *argv[]) {
 						case SDLK_LSHIFT:
 						case SDLK_RSHIFT:
 							shift = 1;
+							dirty = 0;
 							break;
 						case SDLK_ESCAPE:
 							done = 1;
