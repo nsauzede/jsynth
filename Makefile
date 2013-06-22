@@ -1,9 +1,6 @@
-UNAME=$(shell uname)
-ifeq ($(UNAME),MINGW32_NT-5.1)
-WIN32=1
-endif
-
 TARGET=jsynth
+TARGET+=lsrbs
+TARGET+=catiff
 
 CFLAGS=-Wall -Werror
 #CFLAGS+=-O2
@@ -11,6 +8,11 @@ CFLAGS+=-g -O0
 
 CFLAGS+=`sdl-config --cflags`
 LDFLAGS+=`sdl-config --libs` -mno-windows
+
+UNAME=$(shell uname)
+ifeq ($(UNAME),MINGW32_NT-5.1)
+WIN32=1
+endif
 
 ifdef WIN32
 #JACK="/c/Program Files/Jack v1.9.6"
@@ -25,9 +27,14 @@ endif
 
 all:$(TARGET)
 
+rbs.o:rbs.h
+lsrbs.o:rbs.h
+lsrbs: lsrbs.o rbs.o
+	$(CC) -o $@ $^ $(LDFLAGS)
+
 %:	%.c
 	$(CC) -o $@ $(CFLAGS) $^ $(LDFLAGS)
 
 clean:
-	$(RM) $(TARGET) *.exe stdout.txt stderr.txt
+	$(RM) $(TARGET) *.o *.exe stdout.txt stderr.txt
 
