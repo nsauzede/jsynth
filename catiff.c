@@ -71,13 +71,30 @@ int main( int argc, char *argv[])
 			chunk_t chunk;
 			fread( &chunk, sizeof( chunk), 1, in);
 			chunk_size = ntohl( chunk.chunk_data_size);
-			printf( "chunk ID %4s, size=%" PRIu32 "\n", chunk.chunk_id, chunk_size);
+			strncpy( str, chunk.chunk_id, 4);
+			printf( "chunk ID %s, size=%" PRIu32 "\n", str, chunk_size);
 			if (!strncmp( chunk.chunk_id, "CAT ", 4))
 			{
+				fread( str, 4, 1, in);
+				chunk_size -= 4;
+				printf( "IFF Subgroup ID %s\n", str);
 				uint32_t size0;
-				while (!feof( in))
+				size0 = chunk_size;
+				while (!feof( in) && size0 > 0)
 				{
+					chunk_t chunk;
+					memset( &chunk, 0, sizeof( chunk));
+					fread( &chunk, sizeof( chunk), 1, in);
+					chunk_size = ntohl( chunk.chunk_data_size);
+					strncpy( str, chunk.chunk_id, 4);
+					printf( "chunk ID %s, size=%" PRIu32 " (size0=%" PRIu32 ")\n", str, chunk_size, size0);
+					buf = malloc( chunk_size);
+					fread( buf, chunk_size, 1, in);
+					free( buf);
+					size0 -= chunk_size;
+//					size -= chunk_size;
 				}
+				printf( "done subgroup\n");
 			}
 			else
 			{

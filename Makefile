@@ -7,11 +7,12 @@ CFLAGS=-Wall -Werror
 CFLAGS+=-g -O0
 
 CFLAGS+=`sdl-config --cflags`
-LDFLAGS+=`sdl-config --libs` -mno-windows
+LDFLAGS+=`sdl-config --libs`
 
 UNAME=$(shell uname)
 ifeq ($(UNAME),MINGW32_NT-5.1)
 WIN32=1
+LDFLAGS+=-mno-windows
 endif
 
 ifdef WIN32
