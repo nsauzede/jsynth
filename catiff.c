@@ -45,64 +45,27 @@ int main( int argc, char *argv[])
 		perror( "fopen");
 		exit( 1);
 	}
-	uint32_t size;
 	uint32_t chunk_size;
-
 	while (!feof( in))
 	{
+		void *buf;
 		char str[5];
-		rbs_t rbs;
-		fread( &rbs, sizeof( rbs), 1, in);
-		if (strncmp( rbs.chunk_id, "CAT ", 4))
-		{
-			printf( "no CAT subgroup\n");
-			break;
-		}
-		size = ntohl( rbs.chunk_data_size);
 		memset( str, 0, sizeof( str));
-		strncpy( str, rbs.chunk_id, 4);
-		printf( "IFF Group ID %s, size=%" PRIu32 "\n", str, size);
-		strncpy( str, rbs.iff_type, 4);
-		printf( "IFF Subgroup ID %s\n", str);
-		
-		while (!feof(in) && size > 0)
+		chunk_t chunk;
+		fread( &chunk, sizeof( chunk), 1, in);
+		chunk_size = ntohl( chunk.chunk_data_size);
+		strncpy( str, chunk.chunk_id, 4);
+		printf( "chunk ID %s, size=%" PRIu32 "\n", str, chunk_size);
+		if (!strncmp( chunk.chunk_id, "CAT ", 4))
 		{
-			void *buf;
-			chunk_t chunk;
-			fread( &chunk, sizeof( chunk), 1, in);
-			chunk_size = ntohl( chunk.chunk_data_size);
-			strncpy( str, chunk.chunk_id, 4);
-			printf( "chunk ID %s, size=%" PRIu32 "\n", str, chunk_size);
-			if (!strncmp( chunk.chunk_id, "CAT ", 4))
-			{
-				fread( str, 4, 1, in);
-				chunk_size -= 4;
-				printf( "IFF Subgroup ID %s\n", str);
-				uint32_t size0;
-				size0 = chunk_size;
-				while (!feof( in) && size0 > 0)
-				{
-					chunk_t chunk;
-					memset( &chunk, 0, sizeof( chunk));
-					fread( &chunk, sizeof( chunk), 1, in);
-					chunk_size = ntohl( chunk.chunk_data_size);
-					strncpy( str, chunk.chunk_id, 4);
-					printf( "chunk ID %s, size=%" PRIu32 " (size0=%" PRIu32 ")\n", str, chunk_size, size0);
-					buf = malloc( chunk_size);
-					fread( buf, chunk_size, 1, in);
-					free( buf);
-					size0 -= chunk_size;
-//					size -= chunk_size;
-				}
-				printf( "done subgroup\n");
-			}
-			else
-			{
-				buf = malloc( chunk_size);
-				fread( buf, chunk_size, 1, in);
-				free( buf);
-				size -= chunk_size;
-			}
+			fread( str, 4, 1, in);
+			printf( "IFF Subgroup ID %s\n", str);
+		}
+		else
+		{
+			buf = malloc( chunk_size);
+			fread( buf, chunk_size, 1, in);
+			free( buf);
 		}
 	}
 	fclose( in);
