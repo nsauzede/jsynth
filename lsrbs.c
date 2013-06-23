@@ -161,18 +161,29 @@ int main( int argc, char *argv[])
 
 	size -= chunk_size;
 
-	while (size > 0)
+	while (!feof( in) && size > 0)
 	{
 		void *buf;
 		chunk_t chunk;
 		fread( &chunk, sizeof( chunk), 1, in);
 		chunk_size = ntohl( chunk.chunk_data_size);
-		printf( "chunk ID %4s, size=%" PRIu32 "\n", chunk.chunk_id, chunk_size);
-		buf = malloc( size);
-		fread( buf, size, 1, in);
-		free( buf);
-
-		size -= chunk_size;
+		if (!strncmp( chunk.chunk_id, "CAT ", 4))
+		{
+			char str[5];
+			memset( str, 0, 5);
+			fread( str, 4, 1, in);
+			printf( "Subchunk ID %4s\n", chunk.chunk_id);
+		}
+		else
+		{
+			printf( "chunk ID %4s, size=%" PRIu32 "\n", chunk.chunk_id, chunk_size);
+			if (chunk_size & 1)
+				chunk_size++;				// IFF specification mandates padding for odd lengths
+			buf = malloc( chunk_size);
+			fread( buf, chunk_size, 1, in);
+			free( buf);
+			size -= chunk_size;
+		}
 	}
 
 bye:
