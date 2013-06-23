@@ -63,6 +63,8 @@ int main( int argc, char *argv[])
 		}
 		else
 		{
+			if (chunk_size & 1)
+				chunk_size++;				// IFF spec mandates padding for odd lengths
 			buf = malloc( chunk_size);
 			fread( buf, chunk_size, 1, in);
 			free( buf);

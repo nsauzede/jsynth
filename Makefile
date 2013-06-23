@@ -39,3 +39,5 @@ lsrbs: lsrbs.o rbs.o
 clean:
 	$(RM) $(TARGET) *.o *.exe stdout.txt stderr.txt
 
+clobber: clean
+	$(RM) *~
