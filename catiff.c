@@ -24,14 +24,15 @@ int main( int argc, char *argv[])
 	freopen( "CON", "w", stderr );
 #endif
 
-	printf( "hello rbs\n");
-
+	char *chunkname = 0;
 	char *fname = 0;
 	int arg = 1;
 
 	if (arg < argc)
 	{
 		fname = argv[arg++];
+		if (arg < argc)
+			chunkname = argv[arg];
 	}
 	if (!fname)
 	{
@@ -48,14 +49,18 @@ int main( int argc, char *argv[])
 	uint32_t chunk_size;
 	while (!feof( in))
 	{
-		void *buf;
+		uint8_t *buf;
 		char str[5];
+		int disp = 0;
 		memset( str, 0, sizeof( str));
 		chunk_t chunk;
 		fread( &chunk, sizeof( chunk), 1, in);
 		chunk_size = ntohl( chunk.chunk_data_size);
 		strncpy( str, chunk.chunk_id, 4);
-		printf( "chunk ID %s, size=%" PRIu32 "\n", str, chunk_size);
+		if (!chunkname || !strcmp( chunkname, str))
+			disp = 1;
+		if (disp)
+			printf( "chunk ID %s, size=%" PRIu32 "\n", str, chunk_size);
 		if (!strncmp( chunk.chunk_id, "CAT ", 4))
 		{
 			fread( str, 4, 1, in);
@@ -67,6 +72,21 @@ int main( int argc, char *argv[])
 				chunk_size++;				// IFF spec mandates padding for odd lengths
 			buf = malloc( chunk_size);
 			fread( buf, chunk_size, 1, in);
+			if (disp)
+			{
+				int i;
+				for (i = 0; i < chunk_size; i++)
+				{
+					uint8_t b = buf[i];
+					printf( " %02" PRIx8, b);
+					if (i >= 8)
+					{
+						printf( " ..");
+						break;
+					}
+				}
+				printf( "\n");
+			}
 			free( buf);
 		}
 	}

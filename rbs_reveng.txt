@@ -1,0 +1,12 @@
+reverse engineering RBS file format.
+
+known spec :
+CAT/RB40 : HEAD, GLOB, USRI
+CAT/DEVL : MIXR
+missing spec :
+CAT/DEVL : DELY, PCF, DIST, COMP, 303, 808, 909
+CAT/TRKL : TRAK
+
+CAT/DEVL : DELY :
+reserved[8]
+

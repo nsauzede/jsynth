@@ -140,6 +140,25 @@ char iff_type[4];			/*0x08 	4 	IFF Type 	"RB40" (0x52423430)*/
 #endif
 } rbs_t;
 
+/* reverse engineered */
+typedef struct {
+							/*Offset 	Size 	Description 	Value*/
+char chunk_id[4];			/*0x00 	4 	Chunk ID 	"DELY" (0x)*/
+uint32_t chunk_data_size;	/*0x04 	4 	Chunk Data Size 	8*/
+uint8_t delay_enabled;		/*0x08 	1 	Delay Enabled 	0x00 = off*/
+								/*0x01 = on*/
+uint8_t delay_steps;		/*0x09 	1 	Delay Steps 	0x01 - 0x20*/
+uint8_t delay_unit;			/*0x0a 	1 	Delay Unit 	0x00 = triplet*/
+								/*0x01 = duplet*/
+uint8_t delay_feedback;		/*0x10 	1 	Delay Feedback 	0x00 - 0x7f*/
+								/*0x00 = 0*/
+								/*0x7f = 10*/
+uint8_t delay_pan;			/*0x11 	1 	Delay Pan 	0x00 - 0x7f*/
+uint8_t foo12;				/*0x12 	1 	 	0x00 = off*/
+uint8_t foo13;				/*0x13 	1 	 	0x00 = off*/
+uint8_t foo14;				/*0x14 	1 	 	0x00 = off*/
+} dely_t;
+
 #pragma pack()
 
 #endif/*__RBS_H__*/

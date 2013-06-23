@@ -163,7 +163,7 @@ int main( int argc, char *argv[])
 
 	while (!feof( in) && size > 0)
 	{
-		void *buf;
+		uint8_t *buf;
 		chunk_t chunk;
 		fread( &chunk, sizeof( chunk), 1, in);
 		chunk_size = ntohl( chunk.chunk_data_size);
@@ -181,6 +181,13 @@ int main( int argc, char *argv[])
 				chunk_size++;				// IFF specification mandates padding for odd lengths
 			buf = malloc( chunk_size);
 			fread( buf, chunk_size, 1, in);
+			int i;
+			for (i = 0; i < chunk_size; i++)
+			{
+				uint8_t b = buf[i];
+				printf( " %02" PRIx8, b);
+			}
+			printf( "\n");
 			free( buf);
 			size -= chunk_size;
 		}
