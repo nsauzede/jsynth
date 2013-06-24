@@ -148,16 +148,105 @@ uint32_t chunk_data_size;	/*0x04 	4 	Chunk Data Size 	8*/
 uint8_t delay_enabled;		/*0x08 	1 	Delay Enabled 	0x00 = off*/
 								/*0x01 = on*/
 uint8_t delay_steps;		/*0x09 	1 	Delay Steps 	0x01 - 0x20*/
-uint8_t delay_unit;			/*0x0a 	1 	Delay Unit 	0x00 = triplet*/
+uint8_t delay_unit;		/*0x0a 	1 	Delay Unit 	0x00 = triplet*/
 								/*0x01 = duplet*/
-uint8_t delay_feedback;		/*0x10 	1 	Delay Feedback 	0x00 - 0x7f*/
+uint8_t delay_feedback;		/*0x0b 	1 	Delay Feedback 	0x00 - 0x7f*/
 								/*0x00 = 0*/
 								/*0x7f = 10*/
-uint8_t delay_pan;			/*0x11 	1 	Delay Pan 	0x00 - 0x7f*/
-uint8_t foo12;				/*0x12 	1 	 	0x00 = off*/
-uint8_t foo13;				/*0x13 	1 	 	0x00 = off*/
-uint8_t foo14;				/*0x14 	1 	 	0x00 = off*/
+uint8_t delay_pan;		/*0x0c 	1 	Delay Pan 	0x00 - 0x7f*/
+								/*0x00 = L*/
+								/*0x7f = R*/
+uint8_t reserved[3];		/*0x0d 	3 	Reserved 	all zeros*/
 } dely_t;
+
+typedef struct {
+							/*Offset 	Size 	Description 	Value*/
+char chunk_id[4];			/*0x00 	4 	Chunk ID 	"PCF " (0x)*/
+uint32_t chunk_data_size;	/*0x04 	4 	Chunk Data Size 	12*/
+uint8_t pcf_enabled;		/*0x08 	1 	PCF Enabled 	0x00 = off*/
+								/*0x01 = on*/
+uint8_t pcf_freq;		/*0x09 	1 	PCF Frequency 	0x00 - 0x7f*/
+uint8_t pcf_q;			/*0x0a 	1 	PCF Q 	0x00 - 0x7f*/
+uint8_t pcf_amount;		/*0x0b 	1 	PCF Amount 	0x00 - 0x7f*/
+uint8_t pcf_pattern;		/*0x0c 	1 	PCF Pattern 	0x00 - 0x36*/
+uint8_t pcf_dec;		/*0x0d 	1 	PCF Decay 	0x00 - 0x7f*/
+uint8_t pcf_filt_type;		/*0x0e 	1 	PCF Filter Type 	0x00 = BP*/
+								/*0x01 = LP*/
+uint8_t reserved[5];		/*0x0f 	5 	Reserved 	all zeros*/
+} pcf_t;
+
+typedef struct {
+							/*Offset 	Size 	Description 	Value*/
+char chunk_id[4];			/*0x00 	4 	Chunk ID 	"DIST" (0x)*/
+uint32_t chunk_data_size;	/*0x04 	4 	Chunk Data Size 	8*/
+uint8_t dist_enabled;		/*0x08 	1 	Dist Enabled 	0x00 = off*/
+								/*0x01 = on*/
+uint8_t dist_amount;		/*0x09 	1 	Dist Amount 	0x00 - 0x7f*/
+								/*0x00 = 0*/
+								/*0x7f = 10*/
+uint8_t dist_shape;		/*0x0a 	1 	Dist Shape 	0x00 - 0x7f*/
+								/*0x00 = 0*/
+								/*0x7f = 10*/
+uint8_t reserved[5];		/*0x0b 	5 	Reserved 	all zeros*/
+} dist_t;
+
+typedef struct {
+							/*Offset 	Size 	Description 	Value*/
+char chunk_id[4];			/*0x00 	4 	Chunk ID 	"COMP" (0x)*/
+uint32_t chunk_data_size;	/*0x04 	4 	Chunk Data Size 	8*/
+uint8_t comp_enabled;		/*0x08 	1 	Comp Enabled 	0x00 = off*/
+								/*0x01 = on*/
+uint8_t comp_ratio;		/*0x09 	1 	Comp Ratio 	0x00 - 0x7f*/
+								/*0x00 = 0*/
+								/*0x7f = 10*/
+uint8_t comp_thres;		/*0x0a 	1 	Comp Thres 	0x00 - 0x7f*/
+								/*0x00 = 0*/
+								/*0x7f = 10*/
+uint8_t reserved[5];		/*0x0b 	5 	Reserved 	all zeros*/
+} comp_t;
+
+typedef struct {
+							/*Offset 	Size 	Description 	Value*/
+char chunk_id[4];			/*0x00 	4 	Chunk ID 	"303 " (0x)*/
+uint32_t chunk_data_size;	/*0x04 	4 	Chunk Data Size 	1097*/
+uint8_t tb303_enabled;		/*0x08 	1 	303 Enabled 	0x00 = off*/
+								/*0x01 = on*/
+uint8_t tb303_pattern;		/*0x09 	1 	303 Pattern 	0x00 - 0x1f*/
+uint8_t tb303_tune;		/*0x0a 	1 	303 Tune 	0x00 - 0x7f*/
+uint8_t tb303_cutoff;		/*0x0b 	1 	303 Cutoff 	0x00 - 0x7f*/
+uint8_t tb303_reso;		/*0x0c 	1 	303 Reso 	0x00 - 0x7f*/
+uint8_t tb303_env_mod;		/*0x0d 	1 	303 Env Mod 	0x00 - 0x7f*/
+uint8_t tb303_decay;		/*0x0e 	1 	303 Decay 	0x00 - 0x7f*/
+uint8_t tb303_accent;		/*0x0e 	1 	303 Accent 	0x00 - 0x7f*/
+uint8_t tb303_wave;		/*0x0e 	1 	303 Waveform 	0x00 = saw*/
+								/*0x01 = square*/
+uint8_t tb303_shuffle;		/*0x0e 	1 	303 Shuffle 	0x00 = off*/
+								/*0x01 = on*/
+uint8_t tb303_steps;		/*0x0e 	1 	303 Steps 	0x01 - 0x10*/
+
+// note : ((pattern + bank * 8) * 16 + step) * 2 + 12 
+// 12 => note_freq_A_1_1
+uint8_t tb303_note_freq_A_1_1;		/*0x0e 	1 	303 Note Freq	0x00 - 0x0c*/
+// 13 => note_type_A_1_1
+uint8_t tb303_note_type_A_1_1;		/*0x0e 	1 	303 Note Type	0x00 = note_on*/
+								/*0x08 = note_on_down*/
+								/*0x10 = note_silence*/
+								/*0x1c = note_silence_down_up*/
+								/*0x18 = note_silence_down*/
+								/*0x14 = note_silence_up*/
+								/*0x12 = note_silence_accent*/
+								/*0x11 = note_silence_slide*/
+// 14 => note_freq_A_1_2
+// ((0 + 0 * 8) * 16 + 1) * 2 + 12 = 14
+uint8_t tb303_note_freq_A_1_2;		/*0x0e 	1 	303 Note Freq A12	0x00 - 0x0c*/
+// 15 => note_type_A_1_2
+uint8_t tb303_note_type_A_1_2;		/*0x0e 	1 	303 Note Type A12	0x00 = note_on*/
+// ...
+// 46 => note_freq_A_2_1
+// ((1 + 0 * 8) * 16 + 0) * 2 + 12 = 
+
+uint8_t reserved[5];		/*0x0f 	5 	Reserved 	all zeros*/
+} tb303_t;
 
 #pragma pack()
 

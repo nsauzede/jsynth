@@ -79,7 +79,7 @@ int main( int argc, char *argv[])
 				{
 					uint8_t b = buf[i];
 					printf( " %02" PRIx8, b);
-					if (i >= 8)
+					if ((i >= 8) && !chunkname)
 					{
 						printf( " ..");
 						break;

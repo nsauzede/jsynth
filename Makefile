@@ -6,8 +6,8 @@ CFLAGS=-Wall -Werror
 #CFLAGS+=-O2
 CFLAGS+=-g -O0
 
-CFLAGS+=`sdl-config --cflags`
-LDFLAGS+=`sdl-config --libs`
+SCFLAGS+=`sdl-config --cflags`
+SLDFLAGS+=`sdl-config --libs`
 
 UNAME=$(shell uname)
 ifeq ($(UNAME),MINGW32_NT-5.1)
@@ -18,12 +18,12 @@ endif
 ifdef WIN32
 #JACK="/c/Program Files/Jack v1.9.6"
 JACK="/c/Program Files/Jack"
-CFLAGS+=-I$(JACK)/includes
-#LDFLAGS+=-L$(JACK)/lib
-#LDFLAGS+=-ljack
-LDFLAGS+=$(JACK)/lib/libjack.lib
+JCFLAGS+=-I$(JACK)/includes
+#JLDFLAGS+=-L$(JACK)/lib
+#JLDFLAGS+=-ljack
+JLDFLAGS+=$(JACK)/lib/libjack.lib
 else
-LDFLAGS+=-ljack
+JLDFLAGS+=-ljack
 endif
 
 all:$(TARGET)
