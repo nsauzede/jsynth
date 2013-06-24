@@ -459,10 +459,10 @@ int main( int argc, char *argv[]) {
 	}
 	}
 	jack_status_t status;
-	jack_client_t *client = jack_client_open( "metro", JackNoStartServer, &status);
+	jack_client_t *client = jack_client_open( "jsynth", JackNoStartServer, &status);
 	jack_port_t *port;
 	if (client) {
-		port = jack_port_register( client, "140_bpm", JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);
+		port = jack_port_register( client, "output", JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);
 		jack_set_process_callback( client, process_audio, port);
 		sampleFrequency = jack_get_sample_rate( client);
 		printf( "sampleFrequency=%d\n", sampleFrequency);
