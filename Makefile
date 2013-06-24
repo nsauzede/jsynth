@@ -17,7 +17,7 @@ endif
 WHICH_SDL_CONFIG:=x$(shell $(SDL_CONFIG) --cflags)x
 #WHICH_SDL_CONFIG:=x$(shell which sdl-config 2&1 > /dev/null)x
 ifneq ($(WHICH_SDL_CONFIG),xx)
-TARGET+=jsynth.exe
+#TARGET+=jsynth.exe
 endif
 
 #A=$(shell echo -n $(WHICH_SDL_CONFIG) > foo.txt)
@@ -44,7 +44,13 @@ JCFLAGS+=-I$(JACK)/includes
 #JLDFLAGS+=-L$(JACK)/lib
 #JLDFLAGS+=-ljack
 JLDFLAGS+=$(JACK)/lib/libjack.lib
+TARGET+=jsynth.exe
 else
+HAVE_JACK=`if test -e /usr/include/jack/jack.h ; then echo oui ; else echo non ; fi`
+ifeq ($(HAVE_JACK),oui)
+TARGET+=jsynth.exe
+endif
+
 JLDFLAGS+=-ljack
 endif
 
