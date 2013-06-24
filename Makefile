@@ -1,6 +1,6 @@
-TARGET=jsynth
-TARGET+=lsrbs
-TARGET+=catiff
+TARGET=jsynth.exe
+TARGET+=lsrbs.exe
+TARGET+=catiff.exe
 
 CFLAGS=-Wall -Werror
 #CFLAGS+=-O2
@@ -33,7 +33,12 @@ lsrbs.o:rbs.h
 lsrbs: lsrbs.o rbs.o
 	$(CC) -o $@ $^ $(LDFLAGS)
 
-%:	%.c
+jsynth.exe:CFLAGS+=$(SCFLAGS)
+jsynth.exe:CFLAGS+=$(JCFLAGS)
+jsynth.exe:LDFLAGS+=$(SLDFLAGS)
+jsynth.exe:LDFLAGS+=$(JLDFLAGS)
+
+%.exe:	%.c
 	$(CC) -o $@ $(CFLAGS) $^ $(LDFLAGS)
 
 clean:
