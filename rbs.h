@@ -17,6 +17,37 @@
 #pragma pack(1)
 
 typedef struct {
+#if 1
+							/*Offset 	Size 	Description 	Value*/
+char chunk_id[4];			/*0x00 	4 	Chunk ID 	"CAT " (0x43415420)*/
+uint32_t chunk_data_size;	/*0x04 	4 	Chunk Data Size 	(file size) - 8*/
+char iff_type[4];			/*0x08 	4 	IFF Type 	"RB40" (0x52423430)*/
+/*0x10 	data chunks*/
+#else
+// CAT 
+	chunk_t chunk;			// CAT , size ??
+//  RB40
+	char iff_type[4];		// RB40
+//   HEAD, 256
+//   GLOB, 512
+//   USRI, 712
+//   CAT , 
+//    DEVL
+//     MIXR, 64
+//     DELY, 8
+//     PCF, 
+//     DIST
+//     COMP
+//     303 
+//     808 
+//     909 
+//   CAT
+//    TRKL
+//     TRAK
+#endif
+} rbs_t;
+
+typedef struct {
 /*0x00 	4*/ 	char chunk_id[4];			// Chunk ID 	"HEAD" (0x48454144)
 /*0x04 	4*/ 	uint32_t chunk_data_size;	// Chunk Data Size 	256
 /*0x08 	9*/ 	char version[9];			// Version 	0x5b545b54bc04020000
@@ -108,37 +139,6 @@ typedef struct {
 char chunk_id[4];			/*0x00 	4 	Chunk ID 	"CAT " (0x43415420)*/
 uint32_t chunk_data_size;	/*0x04 	4 	Chunk Data Size 	(file size) - 8*/
 } chunk_t;
-
-typedef struct {
-#if 1
-							/*Offset 	Size 	Description 	Value*/
-char chunk_id[4];			/*0x00 	4 	Chunk ID 	"CAT " (0x43415420)*/
-uint32_t chunk_data_size;	/*0x04 	4 	Chunk Data Size 	(file size) - 8*/
-char iff_type[4];			/*0x08 	4 	IFF Type 	"RB40" (0x52423430)*/
-/*0x10 	data chunks*/
-#else
-// CAT 
-	chunk_t chunk;			// CAT , size ??
-//  RB40
-	char iff_type[4];		// RB40
-//   HEAD, 256
-//   GLOB, 512
-//   USRI, 712
-//   CAT , 
-//    DEVL
-//     MIXR, 64
-//     DELY, 8
-//     PCF, 
-//     DIST
-//     COMP
-//     303 
-//     808 
-//     909 
-//   CAT
-//    TRKL
-//     TRAK
-#endif
-} rbs_t;
 
 /* reverse engineered */
 typedef struct {

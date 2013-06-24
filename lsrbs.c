@@ -186,6 +186,11 @@ int main( int argc, char *argv[])
 			{
 				uint8_t b = buf[i];
 				printf( " %02" PRIx8, b);
+				if (i >= 10)
+				{
+					printf( "..");
+					break;
+				}
 			}
 			printf( "\n");
 			free( buf);

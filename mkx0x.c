@@ -30,6 +30,7 @@ typedef pattern_t bank_t[MAX_PATTERNS];
 #define SQUARE 0
 #define SINE 0
 // this song inspired by kurt kurasaki - Peff.com
+char song_info[] = "this song inspired by kurt kurasaki - Peff.com";
 bank_t banks[MAX_BANKS] = {
 {
 {
@@ -65,6 +66,7 @@ int song[] = {
 #define SQUARE 0
 #define SINE 0
 // this pattern sounds like "pink floyd - on the run"
+char song_info[] = "this pattern sounds like pink floyd - on the run";
 bank_t banks[MAX_BANKS] = {
 {
 {
@@ -92,6 +94,7 @@ int song[] = {
 #define SQUARE 1
 #define SINE 0
 // this song inspired by legend b - lost in love
+char song_info[] = "this song inspired by legend b - lost in love";
 bank_t banks[MAX_BANKS] = {
 {
 {
@@ -260,8 +263,47 @@ int bar = 0;
 int nbars = sizeof( song) / sizeof( song[0]);
 
 int main( int argc, char *argv[]) {
+#ifdef WIN32
 	freopen( "CON", "w", stdout );
 	freopen( "CON", "w", stderr );
+#endif
+	
+	char version[9] = { 0x5b, 0x54, 0x5b, 0x54, 0xbc, 0x04, 0x02, 0x00, 0x00 };
+	char copyright[129] = "(c)2013 Nicolas Sauzede, all rights reserved";
+	printf( "HEAD:\n");
+	printf( "version=%s\n", version);
+	printf( "copyright=%s\n", copyright);
+	printf( "GLOB:\n");
+	int tempo = __tempo * 1000;
+	printf( "tempo=%d\n", tempo);
+	printf( "USRI:\n");
+	printf( "song_info=%s\n", song_info);
+	printf( "MIXR:\n");
+	int master = __volume * 0x7f / 100;
+	printf( "master=%d\n", master);
+	printf( "303:\n");
+	int pattern = 0;
+	printf( "pattern=%d\n", pattern);
+	int tune = __tune * 0x7f / 100;
+	printf( "tune=%d\n", tune);
+	int cutoff = __cutoff * 0x7f / 100;
+	printf( "cutoff=%d\n", cutoff);
+	int reso = __reso * 0x7f / 100;
+	printf( "reso=%d\n", reso);
+	int env_mod = __envmod * 0x7f / 100;
+	printf( "env_mod=%d\n", env_mod);
+	int decay = __decay * 0x7f / 100;
+	printf( "decay=%d\n", decay);
+	int accent = __accent * 0x7f / 100;
+	printf( "accent=%d\n", accent);
+	int wave = __square_not_tri;
+	printf( "wave_form=%d (%s)\n", wave, wave == 0 ? "saw" : "square");
+	printf( "steps=%d\n", __steps);
+	printf( "TRAK:\n");
+	printf( "nbars=%d\n", nbars);
+	int nbanks = sizeof( banks) / sizeof( banks[0]);
+	printf( "nbanks=%d\n", nbanks);
+	
 // nbytes=2 per step
 // nsteps=16 per pattern
 // npatterns=8 per bank
