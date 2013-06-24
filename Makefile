@@ -29,13 +29,13 @@ JCFLAGS+=-I$(JACK)/includes
 #JLDFLAGS+=-L$(JACK)/lib
 #JLDFLAGS+=-ljack
 JLDFLAGS+=$(JACK)/lib/libjack.lib
-HAVE_JACK=`if test -e $(JACK)/includes/jack/jack.h ; then echo oui ; else echo non ; fi`
-ifeq ($(HAVE_JACK),oui)
+HAVE_JACK_H=`if test -e $(JACK)/includes/jack/jack.h ; then echo oui ; else echo non ; fi`
+ifeq ($(HAVE_JACK_H),oui)
 HAVE_JACK=1
 endif
 else
-HAVE_JACK=`if test -e /usr/include/jack/jack.h ; then echo oui ; else echo non ; fi`
-ifeq ($(HAVE_JACK),oui)
+HAVE_JACK_H=`if test -e /usr/include/jack/jack.h ; then echo oui ; else echo non ; fi`
+ifeq ($(HAVE_JACK_H),oui)
 HAVE_JACK=1
 endif
 
