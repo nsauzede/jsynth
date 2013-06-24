@@ -50,7 +50,7 @@ char iff_type[4];			/*0x08 	4 	IFF Type 	"RB40" (0x52423430)*/
 typedef struct {
 /*0x00 	4*/ 	char chunk_id[4];			// Chunk ID 	"HEAD" (0x48454144)
 /*0x04 	4*/ 	uint32_t chunk_data_size;	// Chunk Data Size 	256
-/*0x08 	9*/ 	char version[9];			// Version 	0x5b545b54bc04020000
+/*0x08 	9*/ 	uint8_t version[9];			// Version 	0x5b545b54bc04020000
 /*0x11 	129*/ 	char copyright[129];		// Copyright 	"(c)1997 Propellerhead Software, all rights reserved"
 /*0x92 	118*/ 	uint8_t reserved[118];		// Reserved 	all zeros
 } head_t;

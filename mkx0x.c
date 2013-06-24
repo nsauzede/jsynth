@@ -268,10 +268,14 @@ int main( int argc, char *argv[]) {
 	freopen( "CON", "w", stderr );
 #endif
 	
-	char version[9] = { 0x5b, 0x54, 0x5b, 0x54, 0xbc, 0x04, 0x02, 0x00, 0x00 };
+	uint8_t version[9] = { 0x5b, 0x54, 0x5b, 0x54, 0xbc, 0x04, 0x02, 0x00, 0x00 };
 	char copyright[129] = "(c)2013 Nicolas Sauzede, all rights reserved";
 	printf( "HEAD:\n");
-	printf( "version=%s\n", version);
+	printf( "version=");
+	int i;
+	for (i = 0; i < sizeof( version); i++)
+		printf( " %02" PRIx8, version[i]);
+	printf( "\n");
 	printf( "copyright=%s\n", copyright);
 	printf( "GLOB:\n");
 	int tempo = __tempo * 1000;

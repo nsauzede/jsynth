@@ -71,7 +71,11 @@ int main( int argc, char *argv[])
 	}
 	size = ntohl( head.chunk_data_size);
 	printf( "chunk ID HEAD, size=%" PRIu32 "\n", size);
-	printf( "version=%s\n", head.version);
+	printf( "version=");
+	int i;
+	for (i = 0; i < sizeof( head.version); i++)
+		printf( " %02" PRIx8, head.version[i]);
+	printf( "\n");
 	printf( "copyright=%s\n", head.copyright);
 
 	glob_t glob;
