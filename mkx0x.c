@@ -3,6 +3,8 @@
 #include <inttypes.h>
 #include <malloc.h>
 
+#include "rbs.h"
+
 typedef struct {
 	int note;
 	int octave;
@@ -262,14 +264,133 @@ int done = 0;
 int bar = 0;
 int nbars = sizeof( song) / sizeof( song[0]);
 
+typedef struct {
+	rbs_t rb40;
+	head_t head;
+	glob_t glob;
+	usri_t usri;
+
+	rbs_t devl;
+	mixr_t mixr;
+	dely_t dely;
+	pcf_t pcf;
+	dist_t dist;
+	comp_t comp;
+	tb303_t tb303a;
+	tb303_t tb303b;
+	tb808_t tb808;
+	tb909_t tb909;
+
+	rbs_t trkl;
+	trak1_t trak1;
+} x0x_t;
+
+#define htonl ntohl
+uint32_t ntohl( uint32_t val)
+{
+	uint32_t result;
+
+	result = ((val & 0x000000ff) << 24) +
+		((val & 0x0000ff00) << 8) +
+		((val & 0x00ff0000) >> 8) +
+		((val & 0xff000000) >> 24);
+	return result;
+}
+
+int x0x_write_rbs( x0x_t *x0x, char *name)
+{
+	FILE *out = fopen( name, "wb");
+	int rb40_size = 0, devl_size = 0, trkl_size = 0, size;
+ 	
+	rb40_size += size = sizeof( head_t) - 8;
+	x0x->head.chunk_data_size = htonl( size);
+	rb40_size += size = sizeof( glob_t) - 8;
+	x0x->glob.chunk_data_size = htonl( size);
+	rb40_size += size = sizeof( usri_t) - 8;
+	x0x->usri.chunk_data_size = htonl( size);
+
+	rb40_size += devl_size += size = sizeof( mixr_t) - 8;
+	x0x->mixr.chunk_data_size = htonl( size);
+	rb40_size += devl_size += size = sizeof( dely_t) - 8;
+	x0x->dely.chunk_data_size = htonl( size);
+	rb40_size += devl_size += size = sizeof( pcf_t) - 8;
+	x0x->pcf.chunk_data_size = htonl( size);
+	rb40_size += devl_size += size = sizeof( dist_t) - 8;
+	x0x->dist.chunk_data_size = htonl( size);
+	rb40_size += devl_size += size = sizeof( comp_t) - 8;
+	x0x->comp.chunk_data_size = htonl( size);
+	rb40_size += devl_size += size = sizeof( tb303_t) - 8 - 1;
+	x0x->tb303a.chunk_data_size = htonl( size);
+	rb40_size += devl_size += size = sizeof( tb303_t) - 8 - 1;
+	x0x->tb303b.chunk_data_size = htonl( size);
+	rb40_size += devl_size += size = sizeof( tb808_t) - 8;
+	x0x->tb808.chunk_data_size = htonl( size);
+	rb40_size += devl_size += size = sizeof( tb909_t) - 8 - 1;
+	x0x->tb909.chunk_data_size = htonl( size);
+
+	rb40_size += trkl_size += size = sizeof( trak1_t) - 8;
+	x0x->trak1.chunk_data_size = htonl( size);
+
+	x0x->trkl.chunk_data_size = htonl( trkl_size);
+	x0x->devl.chunk_data_size = htonl( devl_size);
+	x0x->rb40.chunk_data_size = htonl( rb40_size);
+	
+	strncpy( x0x->rb40.chunk_id, "CAT ", 4);
+	strncpy( x0x->rb40.iff_type, "RB40", 4);
+
+	strncpy( x0x->head.chunk_id, "HEAD", 4);
+	strncpy( x0x->glob.chunk_id, "GLOB", 4);
+	strncpy( x0x->usri.chunk_id, "USRI", 4);
+
+	strncpy( x0x->devl.chunk_id, "CAT ", 4);
+	strncpy( x0x->devl.iff_type, "DEVL", 4);
+
+	strncpy( x0x->mixr.chunk_id, "MIXR", 4);
+	strncpy( x0x->dely.chunk_id, "DELY", 4);
+	strncpy( x0x->pcf.chunk_id, "PCF ", 4);
+	strncpy( x0x->dist.chunk_id, "DIST", 4);
+	strncpy( x0x->comp.chunk_id, "COMP", 4);
+	strncpy( x0x->tb303a.chunk_id, "303 ", 4);
+	strncpy( x0x->tb303b.chunk_id, "303 ", 4);
+	strncpy( x0x->tb808.chunk_id, "808 ", 4);
+	strncpy( x0x->tb909.chunk_id, "909 ", 4);
+
+	strncpy( x0x->trkl.chunk_id, "CAT ", 4);
+	strncpy( x0x->trkl.iff_type, "TRKL", 4);
+	
+	strncpy( x0x->trak1.chunk_id, "TRAK", 4);
+
+	fwrite( x0x, sizeof( *x0x), 1, out);
+	fclose( out);
+
+	return 0;
+}
+
 int main( int argc, char *argv[]) {
 #ifdef WIN32
 	freopen( "CON", "w", stdout );
 	freopen( "CON", "w", stderr );
 #endif
+	char *fname = 0;
+	int arg = 1;
+	if (arg < argc)
+		fname = argv[arg++];
 	
 	uint8_t version[9] = { 0x5b, 0x54, 0x5b, 0x54, 0xbc, 0x04, 0x02, 0x00, 0x00 };
-	char copyright[129] = "(c)2013 Nicolas Sauzede, all rights reserved";
+//	char copyright[129] = "(c)2013 Nicolas Sauzede, all rights reserved";
+	char copyright[129] = "(c)1997 Propellerhead Software, all rights reserved";
+#if 0
+	int tempo = __tempo * 1000;
+	int master = __volume * 0x7f / 100;
+	int pattern = 0;
+	int tune = __tune * 0x7f / 100;
+	int cutoff = __cutoff * 0x7f / 100;
+	int reso = __reso * 0x7f / 100;
+	int env_mod = __envmod * 0x7f / 100;
+	int decay = __decay * 0x7f / 100;
+	int accent = __accent * 0x7f / 100;
+	int wave = __square_not_tri;
+	int nbanks = sizeof( banks) / sizeof( banks[0]);
 	printf( "HEAD:\n");
 	printf( "version=");
 	int i;
@@ -278,36 +399,36 @@ int main( int argc, char *argv[]) {
 	printf( "\n");
 	printf( "copyright=%s\n", copyright);
 	printf( "GLOB:\n");
-	int tempo = __tempo * 1000;
 	printf( "tempo=%d\n", tempo);
 	printf( "USRI:\n");
 	printf( "song_info=%s\n", song_info);
 	printf( "MIXR:\n");
-	int master = __volume * 0x7f / 100;
 	printf( "master=%d\n", master);
 	printf( "303:\n");
-	int pattern = 0;
 	printf( "pattern=%d\n", pattern);
-	int tune = __tune * 0x7f / 100;
 	printf( "tune=%d\n", tune);
-	int cutoff = __cutoff * 0x7f / 100;
 	printf( "cutoff=%d\n", cutoff);
-	int reso = __reso * 0x7f / 100;
 	printf( "reso=%d\n", reso);
-	int env_mod = __envmod * 0x7f / 100;
 	printf( "env_mod=%d\n", env_mod);
-	int decay = __decay * 0x7f / 100;
 	printf( "decay=%d\n", decay);
-	int accent = __accent * 0x7f / 100;
 	printf( "accent=%d\n", accent);
-	int wave = __square_not_tri;
 	printf( "wave_form=%d (%s)\n", wave, wave == 0 ? "saw" : "square");
 	printf( "steps=%d\n", __steps);
 	printf( "TRAK:\n");
 	printf( "nbars=%d\n", nbars);
-	int nbanks = sizeof( banks) / sizeof( banks[0]);
 	printf( "nbanks=%d\n", nbanks);
-	
+#endif
+
+#if 1
+	if (fname)
+	{
+		x0x_t *x0x = malloc( sizeof( x0x_t));
+		memset( x0x, 0, sizeof( *x0x));
+		memcpy( x0x->head.version, version, sizeof( x0x->head.version));
+		strncpy( x0x->head.copyright, copyright, sizeof( x0x->head.copyright));
+		x0x_write_rbs( x0x, fname);
+	}
+#else	
 // nbytes=2 per step
 // nsteps=16 per pattern
 // npatterns=8 per bank
@@ -324,6 +445,7 @@ int main( int argc, char *argv[]) {
 	fwrite( notes, NBYTES, 1, out);
 	fclose( out);
 	free( notes);
+#endif
 
 	return 0;
 }
