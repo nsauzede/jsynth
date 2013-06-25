@@ -32,7 +32,7 @@ typedef pattern_t bank_t[MAX_PATTERNS];
 #define ACCENT 100
 #define SQUARE 0
 #define SINE 0
-// this song inspired by kurt kurasaki - Peff.com
+char *song_info = "this song inspired by kurt kurasaki - Peff.com";
 bank_t banks[MAX_BANKS] = {
 {
 {
@@ -59,7 +59,7 @@ bank_t banks[MAX_BANKS] = {
 int song[] = {
 	0,
 };
-#elif 1
+#elif 0
 #define TEMPO 140
 #define TUNE 50
 #define STEPS 8
@@ -67,7 +67,7 @@ int song[] = {
 #define ACCENT 100
 #define SQUARE 0
 #define SINE 0
-// this pattern sounds like "pink floyd - on the run"
+char *song_info = "this pattern sounds like pink floyd - on the run";
 bank_t banks[MAX_BANKS] = {
 {
 {
@@ -86,7 +86,7 @@ bank_t banks[MAX_BANKS] = {
 int song[] = {
 	0,
 };
-#else
+#elif 0
 #define TEMPO 290
 #define TUNE 70
 #define STEPS 8
@@ -229,6 +229,46 @@ int song[] = {
 //	1,
 	5, 5,
 };
+#else
+#define USE_X0X
+#define SINE 0
+#include "x0x.h"
+int TEMPO, STEPS, TUNE, CUTOFF, ACCENT, SQUARE, NBARS;
+int *song;
+char *song_info;
+bank_t banks[MAX_BANKS];
+int load( char *fname)
+{
+	x0x_t *x0x = x0x_load( fname);
+	TUNE = x0x->tune;
+	TEMPO = x0x->tempo;
+	STEPS = x0x->nsteps;
+	CUTOFF = x0x->cutoff;
+	SQUARE = x0x->wave_form;
+	NBARS = x0x->nbars;
+	song_info = strdup( x0x->song_info);
+	song = malloc( sizeof( int) * x0x->nbars);
+	memcpy( song, x0x->song, sizeof( int) * x0x->nbars);
+	int k, j, i;
+	for (k = 0; k < x0x->nbank; k++)
+		for (j = 0; j < x0x->npat; j++)
+			for (i = 0; i < x0x->nsteps; i++)
+			{
+				banks[k][j][i].note = x0x->steps[k][j][i][0];
+				banks[k][j][i].octave = x0x->steps[k][j][i][1];
+				banks[k][j][i].play_not_silence = x0x->steps[k][j][i][2];
+				banks[k][j][i].accent = x0x->steps[k][j][i][3];
+				banks[k][j][i].slide = x0x->steps[k][j][i][4];
+			}
+	free( x0x);
+	return 0;
+}
+#define __tune TUNE
+#define __tempo TEMPO
+#define __steps STEPS
+#define __cutoff CUTOFF
+#define __square_not_tri SQUARE
+#define nbars NBARS
 #endif
 
 int sampleFrequency = 44100;
@@ -236,14 +276,16 @@ typedef jack_default_audio_sample_t sample_t;
 
 int __play_not_pause = 1;
 int __volume = 100;			// %
+#ifndef USE_X0X
 int __tempo = TEMPO;		// bpm
 int __steps = STEPS;		// n
 int __tune = TUNE;			// %
 int __cutoff = CUTOFF;		// %
-int __reso = 0;				// %
-int __envmod = 0;			// %
 int __accent = ACCENT;		// %
 int __square_not_tri = SQUARE;	// 0=tri, 1=square
+#endif
+int __reso = 0;				// %
+int __envmod = 0;			// %
 int __sine_not_square = SINE;	// 0=square, 1=sine
 
 int __delay = 0;			// % of width
@@ -261,7 +303,9 @@ int pattern = 0;
 int bank = 0;
 int done = 0;
 int bar = 0;
+#ifndef USE_X0X
 int nbars = sizeof( song) / sizeof( song[0]);
+#endif
 
 #if 0
 // this is some kind of half-working passive LPF.. (no resonance)
@@ -451,13 +495,23 @@ void fillbox( SDL_Surface *screen, SDL_Rect *_rect, Uint32 col) {
 int main( int argc, char *argv[]) {
 	freopen( "CON", "w", stdout );
 	freopen( "CON", "w", stderr );
+#ifdef USE_X0X
 	int arg = 1;
+	char *fname = 0;
 	if (argc > arg) {
-		sscanf( argv[arg++], "%d", &__tune);
-	if (argc > arg) {
-		sscanf( argv[arg++], "%d", &__square_not_tri);
+		fname = argv[arg++];
 	}
+
+	if (fname)
+		load( fname);
+	else
+	{
+		printf( "usage: jsynth <file.x0x>\n");
+		exit( 1);
 	}
+#endif
+
+	printf( "playing [%s]\n", song_info);
 	jack_status_t status;
 	jack_client_t *client = jack_client_open( "jsynth", JackNoStartServer, &status);
 	jack_port_t *port;
@@ -473,8 +527,8 @@ int main( int argc, char *argv[]) {
 	}
 	SDL_Init( SDL_INIT_VIDEO);
 	atexit( SDL_Quit);
-	freopen( "CON", "w", stdout );
-	freopen( "CON", "w", stderr );
+//	freopen( "CON", "w", stdout );
+//	freopen( "CON", "w", stderr );
 	int ww = 100;
 	int hh = 100;
 	SDL_Surface *screen = SDL_SetVideoMode( ww, hh, 32, 0);

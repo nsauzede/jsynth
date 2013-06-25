@@ -76,6 +76,7 @@ char chunk_id[4];		/*0x00 	4 	Chunk ID 	"USRI" (0x55535249)*/
 uint32_t chunk_data_size;	/*0x04 	4 	Chunk Data Size 	512*/
 char window_title[41];		/*0x08 	41 	Window Title 	text added to window title*/
 char song_information[401];	/*0x31 	201 	Song Information 	text in song information dialog (0x0D is newline)*/
+//char song_information[201];	/*0x31 	201 	Song Information 	text in song information dialog (0x0D is newline)*/
 char web_page[101];		/*0xFA 	101 	Web Page 	url-address in song information dialog*/
 uint8_t show_song_info;		/*0x15F 	1 	Show Song Info On Open 	0x00 = no, 0x01 = yes*/
 uint8_t reserved[168];		/*0x160 	168 	Reserved 	all zeros*/

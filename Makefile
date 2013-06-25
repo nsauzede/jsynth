@@ -20,6 +20,7 @@ UNAME=$(shell uname)
 ifeq ($(UNAME),MINGW32_NT-5.1)
 WIN32=1
 LDFLAGS+=-mno-windows
+CFLAGS+=-mno-windows
 endif
 
 ifdef WIN32
@@ -57,10 +58,19 @@ lsrbs.o:rbs.h
 lsrbs: lsrbs.o rbs.o
 	$(CC) -o $@ $^ $(LDFLAGS)
 
+x0x.o:x0x.h
+mkx0x.o:x0x.h
+mkx0x.exe: mkx0x.o x0x.o
+	$(CC) -o $@ $^ $(LDFLAGS)
+
 jsynth.exe:CFLAGS+=$(SCFLAGS)
 jsynth.exe:CFLAGS+=$(JCFLAGS)
 jsynth.exe:LDFLAGS+=$(SLDFLAGS)
 jsynth.exe:LDFLAGS+=$(JLDFLAGS)
+
+jynth.o:x0x.h
+jsynth.exe: jsynth.o x0x.o
+	$(CC) -o $@ $^ $(LDFLAGS)
 
 %.exe:	%.c
 	$(CC) -o $@ $(CFLAGS) $^ $(LDFLAGS)
