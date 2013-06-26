@@ -493,8 +493,10 @@ void fillbox( SDL_Surface *screen, SDL_Rect *_rect, Uint32 col) {
 	}
 }
 int main( int argc, char *argv[]) {
+#ifdef WIN32
 	freopen( "CON", "w", stdout );
 	freopen( "CON", "w", stderr );
+#endif
 #ifdef USE_X0X
 	int arg = 1;
 	char *fname = 0;

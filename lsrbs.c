@@ -45,7 +45,8 @@ int main( int argc, char *argv[])
 		perror( "fopen");
 		exit( 1);
 	}
-	uint32_t size, data;
+	uint32_t size;
+//	uint32_t data;
 
 	rbs_t rbs;
 	fread( &rbs, sizeof( rbs), 1, in);
@@ -87,6 +88,9 @@ int main( int argc, char *argv[])
 	}
 	size = ntohl( glob.chunk_data_size);
 	printf( "chunk ID GLOB, size=%" PRIu32 "\n", size);
+#if 1
+	printf( "glob chunk !!\n");
+#else
 	printf( "play_mode=%" PRIx8 "\n", glob.play_mode);
 	printf( "loop=%" PRIx8 "\n", glob.loop);
 	data = ntohl( glob.tempo);
@@ -100,6 +104,7 @@ int main( int argc, char *argv[])
 	printf( "mod_ftp=%s\n", glob.mod_ftp);
 	printf( "mod_www=%s\n", glob.mod_www);
 	printf( "vintage_mode=%" PRIx8 "\n", glob.vintage_mode);
+#endif
 
 	usri_t usri;
 	fread( &usri, sizeof( usri), 1, in);
@@ -110,10 +115,14 @@ int main( int argc, char *argv[])
 	}
 	size = ntohl( usri.chunk_data_size);
 	printf( "chunk ID %4s, size=%" PRIu32 "\n", usri.chunk_id, size);
+#if 1
+	printf( "usri chunk !!\n");
+#else
 	printf( "window_title=%s\n", usri.window_title);
 	printf( "song_information=%s\n", usri.song_information);
 	printf( "web_page=%s\n", usri.web_page);
 	printf( "show_song_info=%" PRIx8 "\n", usri.show_song_info);
+#endif
 
 	fread( &rbs, sizeof( rbs), 1, in);
 	if (strncmp( rbs.chunk_id, "CAT ", 4))
@@ -139,6 +148,9 @@ int main( int argc, char *argv[])
 	}
 	chunk_size = ntohl( mixr.chunk_data_size);
 	printf( "chunk ID %4s, size=%" PRIu32 "\n", mixr.chunk_id, chunk_size);
+#if 1
+	printf( "mixr chunk !!\n");
+#else
 	printf( "master_fader_level=%" PRIx8 "\n", mixr.master_fader_level);
 	printf( "compressor_id=%" PRIx8 "\n", mixr.compressor_id);
 	printf( "pcf_id=%" PRIx8 "\n", mixr.pcf_id);
@@ -162,6 +174,7 @@ int main( int argc, char *argv[])
 	printf( "mix_pan_9=%" PRIx8 "\n", mixr.mix_pan_9);
 	printf( "delay_send_amt_9=%" PRIx8 "\n", mixr.delay_send_amt_9);
 	printf( "disto_enabled_9=%" PRIx8 "\n", mixr.disto_enabled_9);
+#endif
 
 	size -= chunk_size;
 
@@ -181,6 +194,28 @@ int main( int argc, char *argv[])
 		else
 		{
 			printf( "chunk ID %4s, size=%" PRIu32 "\n", chunk.chunk_id, chunk_size);
+			if (!strncmp( chunk.chunk_id, "303 ", 4))
+			{
+				tb303_t tb303;
+				fread( (char *)&tb303 + sizeof( chunk), sizeof( tb303) - sizeof( chunk), 1, in);
+#if 0
+				printf( "303 chunk !!\n");
+#else
+				printf( "enabled=%d\n", tb303.tb303_enabled);
+				printf( "pattern=%d\n", tb303.tb303_pattern);
+				printf( "tune=%d\n", tb303.tb303_tune);
+				printf( "cutoff=%d\n", tb303.tb303_cutoff);
+				printf( "reso=%d\n", tb303.tb303_reso);
+				printf( "env_mod=%d\n", tb303.tb303_env_mod);
+				printf( "decay=%d\n", tb303.tb303_decay);
+				printf( "accent=%d\n", tb303.tb303_accent);
+				printf( "waveform=%d\n", tb303.tb303_wave);
+				printf( "shuffle=%d\n", tb303.tb303_shuffle);
+				printf( "steps=%d\n", tb303.tb303_steps);
+#endif
+			}
+			else
+			{
 			if (chunk_size & 1)
 				chunk_size++;				// IFF specification mandates padding for odd lengths
 			buf = malloc( chunk_size);
@@ -198,6 +233,7 @@ int main( int argc, char *argv[])
 			}
 			printf( "\n");
 			free( buf);
+			}
 			size -= chunk_size;
 		}
 	}
