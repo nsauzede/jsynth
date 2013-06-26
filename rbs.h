@@ -200,7 +200,7 @@ uint8_t reserved[5];		/*0x0b 	5 	Reserved 	all zeros*/
 
 typedef struct {		/*Offset 	Size 	Description 	Value*/
 char chunk_id[4];		/*0x00 	4 	Chunk ID 	"303 " (0x)*/
-uint32_t chunk_data_size;	/*0x04 	4 	Chunk Data Size 	1097*/
+uint32_t chunk_data_size;	/*0x04 	4 	Chunk Data Size 	0x449 (1097)*/
 uint8_t tb303_enabled;		/*0x08 	1 	303 Enabled 	0x00 = off*/
 								/*0x01 = on*/
 uint8_t tb303_pattern;		/*0x09 	1 	303 Pattern 	0x00 - 0x1f*/
@@ -212,11 +212,10 @@ uint8_t tb303_decay;		/*0x0e 	1 	303 Decay 	0x00 - 0x7f*/
 uint8_t tb303_accent;		/*0x0e 	1 	303 Accent 	0x00 - 0x7f*/
 uint8_t tb303_wave;		/*0x0e 	1 	303 Waveform 	0x00 = saw*/
 								/*0x01 = square*/
+#if 0
 uint8_t tb303_shuffle;		/*0x0e 	1 	303 Shuffle 	0x00 = off*/
 								/*0x01 = on*/
 uint8_t tb303_steps;		/*0x0e 	1 	303 Steps 	0x01 - 0x10*/
-
-#if 0
 // note : ((pattern + bank * 8) * 16 + step) * 2 + 12 
 // 12 => note_freq_A_1_1
 uint8_t tb303_note_freq_A_1_1;		/*0x0e 	1 	303 Note Freq	0x00 - 0x0c*/
@@ -240,7 +239,7 @@ uint8_t tb303_note_type_A_1_2;		/*0x0e 	1 	303 Note Type A12	0x00 = note_on*/
 
 uint8_t reserved[5];		/*0x0f 	5 	Reserved 	all zeros*/
 #else
-uint8_t reserved[1086];		/*0x0f 	1086 	Reserved 	all zeros*/
+uint8_t reserved[1088];		/*0x0f 	1086 	Reserved 	all zeros*/
 uint8_t reserved0;		/*0x0f 	1086 	Reserved 	all zeros*/
 #endif
 } tb303_t;

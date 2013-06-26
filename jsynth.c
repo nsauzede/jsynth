@@ -242,6 +242,7 @@ int load( char *fname)
 	x0x_t *x0x = x0x_load( fname);
 	TUNE = x0x->tune;
 	TEMPO = x0x->tempo;
+	printf( "tempo=%d\n", TEMPO);
 	STEPS = x0x->nsteps;
 	CUTOFF = x0x->cutoff;
 	SQUARE = x0x->wave_form;

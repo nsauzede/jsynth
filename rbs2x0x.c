@@ -91,8 +91,8 @@ int main( int argc, char *argv[]) {
 				static int count = 0;
 				if (count++ == 0)
 				{
-	                printf( "tempo=%d\n", glob.tempo);
-					x0x->tempo = glob.tempo;
+					x0x->tempo = ntohl( glob.tempo) / 1000;
+	                printf( "tempo=%d\n", x0x->tempo);
 				}
             }
             else if (!strncmp( chunk.chunk_id, "USRI", 4))
@@ -122,8 +122,9 @@ int main( int argc, char *argv[]) {
                 tb303_t tb303;
                 fread( (char *)&tb303 + sizeof( chunk), sizeof( tb303) - sizeof( chunk), 1, in);
 				static int count = 0;
-				if (count++ == 0)
+				if (tb303.tb303_enabled && (count == 0))
 				{
+					count++;
 	                printf( "enabled=%d\n", tb303.tb303_enabled);
 	                printf( "pattern=%d\n", tb303.tb303_pattern);
 	                printf( "tune=%d\n", tb303.tb303_tune);
@@ -133,37 +134,37 @@ int main( int argc, char *argv[]) {
 	                printf( "decay=%d\n", tb303.tb303_decay);
 	                printf( "accent=%d\n", tb303.tb303_accent);
 	                printf( "waveform=%d\n", tb303.tb303_wave);
-	                printf( "shuffle=%d\n", tb303.tb303_shuffle);
-	                printf( "steps=%d\n", tb303.tb303_steps);
 					x0x->tune = tb303.tb303_tune;
 					x0x->cutoff = tb303.tb303_cutoff;
 					x0x->reso = tb303.tb303_reso;
 					x0x->envmod = tb303.tb303_env_mod;
 					x0x->accent = tb303.tb303_accent;
 					x0x->wave_form = tb303.tb303_wave;
-					x0x->nsteps = tb303.tb303_steps;
 #if 1
 	int npat = 8;
 	int nbank = 1;
-	int nbars = 1;
 	x0x->npat = npat;
 	x0x->nbank = nbank;
-	x0x->nbars = nbars;
+	x0x->nsteps = 8;
+	printf( "nbars=%d\n", x0x->nbars);
 	int i;
 	int b = 0;
 	int p = 0;
 	for (b = 0; b < nbank; b++)
 	for (p = 0; p < npat; p++)
 	{
-//		x0x->steps[b][p][i][0] = tb303.reserved[p * 34 + 0];//shuffle
-//		x0x->steps[b][p][i][0] = tb303.reserved[p * 34 + 1];//len
+		printf( "shuffle=%02x length=%02x\n", tb303.reserved[p * 34 + 0], tb303.reserved[p * 34 + 1]);
 		for (i = 0; i < x0x->nsteps; i++)
 		{
+//			printf( "%d: tone=%02" PRIx8 "\n", i, tb303.reserved[p * 34 + 2 + i * 2 + 0]);
+//			printf( "%d: flags=%02" PRIx8 "\n", i, tb303.reserved[p * 34 + 2 + i * 2 + 1]);
 			x0x->steps[b][p][i][0] = tb303.reserved[p * 34 + 2 + i * 2 + 0];				//note
-			x0x->steps[b][p][i][1] = (tb303.reserved[p * 34 + 2 + i * 2 + 1] & 0xc) >> 2;	//octave;
-			x0x->steps[b][p][i][2] = !!(tb303.reserved[p * 34 + 2 + i * 2 + 1] & 0x10);		//play_not_silence;
+			int oct = (tb303.reserved[p * 34 + 2 + i * 2 + 1] & 0xc) >> 2;
+			x0x->steps[b][p][i][1] = oct == 0 ? 1 : oct == 1 ? 2 : oct == 2 ? 0 : 1;	//octave;
+			x0x->steps[b][p][i][2] = !(tb303.reserved[p * 34 + 2 + i * 2 + 1] & 0x10);		//play_not_silence;
 			x0x->steps[b][p][i][3] = !!(tb303.reserved[p * 34 + 2 + i * 2 + 1] & 0x2);		//accent;
 			x0x->steps[b][p][i][4] = !!(tb303.reserved[p * 34 + 2 + i * 2 + 1] & 0x1);		//slide;
+#if 1
 			printf( "%d: n=%d o=%d pns=%d a=%d s=%d\n", i
 				,x0x->steps[b][p][i][0]
 				,x0x->steps[b][p][i][1]
@@ -171,9 +172,11 @@ int main( int argc, char *argv[]) {
 				,x0x->steps[b][p][i][3]
 				,x0x->steps[b][p][i][4]
 			);
+#endif
 		}
 	}
-					x0x->nbars = 0;
+					int nbars = 1;
+					x0x->nbars = nbars;
 					for (i = 0; i < x0x->nbars; i++)
 					{
 						x0x->song[i] = 0;

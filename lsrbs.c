@@ -46,7 +46,7 @@ int main( int argc, char *argv[])
 		exit( 1);
 	}
 	uint32_t size;
-//	uint32_t data;
+	uint32_t data;
 
 	rbs_t rbs;
 	fread( &rbs, sizeof( rbs), 1, in);
@@ -88,7 +88,7 @@ int main( int argc, char *argv[])
 	}
 	size = ntohl( glob.chunk_data_size);
 	printf( "chunk ID GLOB, size=%" PRIu32 "\n", size);
-#if 1
+#if 0
 	printf( "glob chunk !!\n");
 #else
 	printf( "play_mode=%" PRIx8 "\n", glob.play_mode);
@@ -210,8 +210,6 @@ int main( int argc, char *argv[])
 				printf( "decay=%d\n", tb303.tb303_decay);
 				printf( "accent=%d\n", tb303.tb303_accent);
 				printf( "waveform=%d\n", tb303.tb303_wave);
-				printf( "shuffle=%d\n", tb303.tb303_shuffle);
-				printf( "steps=%d\n", tb303.tb303_steps);
 #endif
 			}
 			else
