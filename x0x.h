@@ -1,11 +1,10 @@
 typedef struct {
 	char song_info[65];
 	int volume, tempo, tune, cutoff, reso, envmod, accent, wave_form;
-	int nsteps;
 	int npat;
-	int nbank;
 	int nbars;
-	int steps[4][8][16][5];
+	int nsteps[32];
+	int steps[32][16][5];
 	int song[128];
 } x0x_t;
 

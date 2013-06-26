@@ -16,10 +16,8 @@ typedef struct {
 
 #define MAX_STEPS 16
 #define MAX_PATTERNS 8
-#define MAX_BANKS 4
 
 typedef step_t pattern_t[MAX_STEPS];
-typedef pattern_t bank_t[MAX_PATTERNS];
 
 #define AMAX ((double)1.0)
 #define FILTER_MIN ((double)500)
@@ -33,8 +31,7 @@ typedef pattern_t bank_t[MAX_PATTERNS];
 #define SQUARE 0
 #define SINE 0
 char *song_info = "this song inspired by kurt kurasaki - Peff.com";
-bank_t banks[MAX_BANKS] = {
-{
+pattern_t banks[] = {
 {
 //    n  o  p  a  s
 	{ 0, 0, 1, 0, 0},		// step1
@@ -53,7 +50,6 @@ bank_t banks[MAX_BANKS] = {
 	{ 0, 1, 1, 0, 0},		// step14
 	{ 0, 1, 1, 0, 0},		// step15
 	{ 0, 1, 0, 0, 0},		// step16
-}
 }
 };
 int song[] = {
@@ -236,31 +232,30 @@ int song[] = {
 int TEMPO, STEPS, TUNE, CUTOFF, ACCENT, SQUARE, NBARS;
 int *song;
 char *song_info;
-bank_t banks[MAX_BANKS];
+pattern_t banks[32];
 int load( char *fname)
 {
 	x0x_t *x0x = x0x_load( fname);
 	TUNE = x0x->tune;
 	TEMPO = x0x->tempo;
 	printf( "tempo=%d\n", TEMPO);
-	STEPS = x0x->nsteps;
+	STEPS = x0x->nsteps[0];
 	CUTOFF = x0x->cutoff;
 	SQUARE = x0x->wave_form;
 	NBARS = x0x->nbars;
 	song_info = strdup( x0x->song_info);
 	song = malloc( sizeof( int) * x0x->nbars);
 	memcpy( song, x0x->song, sizeof( int) * x0x->nbars);
-	int k, j, i;
-	for (k = 0; k < x0x->nbank; k++)
-		for (j = 0; j < x0x->npat; j++)
-			for (i = 0; i < x0x->nsteps; i++)
-			{
-				banks[k][j][i].note = x0x->steps[k][j][i][0];
-				banks[k][j][i].octave = x0x->steps[k][j][i][1];
-				banks[k][j][i].play_not_silence = x0x->steps[k][j][i][2];
-				banks[k][j][i].accent = x0x->steps[k][j][i][3];
-				banks[k][j][i].slide = x0x->steps[k][j][i][4];
-			}
+	int j, i;
+	for (j = 0; j < x0x->npat; j++)
+		for (i = 0; i < x0x->nsteps[j]; i++)
+		{
+			banks[j][i].note = x0x->steps[j][i][0];
+			banks[j][i].octave = x0x->steps[j][i][1];
+			banks[j][i].play_not_silence = x0x->steps[j][i][2];
+			banks[j][i].accent = x0x->steps[j][i][3];
+			banks[j][i].slide = x0x->steps[j][i][4];
+		}
 	free( x0x);
 	return 0;
 }
@@ -378,18 +373,18 @@ int process_audio( jack_nframes_t nframes, void *arg) {
 	int _decay = __decay;						// %
 	int _sustain = __sustain;					// %
 	int _release = __release;					// %
-	if (step == -1 || !banks[bank][pattern][step].play_not_silence || !__play_not_pause) {
+	if (step == -1 || !banks[pattern][step].play_not_silence || !__play_not_pause) {
 		_volume = 0;
 	} else {
-		note = banks[bank][pattern][step].note;
-		octave = banks[bank][pattern][step].octave;
+		note = banks[pattern][step].note;
+		octave = banks[pattern][step].octave;
 		n = note + (12 * octave) + ((double)24 * _tune / 100);
 		_freq = (double)16.3516 * pow( (double)1.0594630943592952645618252949463, n);		// Hz
-		if (banks[bank][pattern][step].slide) {
+		if (banks[pattern][step].slide) {
 			_width = _period - 1;
 			_release = 5;
 		}
-		if (banks[bank][pattern][step].accent) {
+		if (banks[pattern][step].accent) {
 			_attack = 10;
 			_hold = 10;
 			_decay = 80;
@@ -694,7 +689,7 @@ int main( int argc, char *argv[]) {
 		rect.w = w;
 		rect.h = h;
 		fillbox( screen, &rect, red);
-		rect.y = (double)hh - (banks[bank][pattern][_step].note + 13 * banks[bank][pattern][_step].octave + 1) * (hh - h) / (13 * 3);
+		rect.y = (double)hh - (banks[pattern][_step].note + 13 * banks[pattern][_step].octave + 1) * (hh - h) / (13 * 3);
 		fillbox( screen, &rect, blue);
 		SDL_UpdateRect( screen, 0, 0, 0, 0);
 		if (_old_step == _step)

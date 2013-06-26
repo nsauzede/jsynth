@@ -15,11 +15,8 @@ typedef struct {
 //#define MAX_STEPS
 #define MAX_PATTERNS 8
 //#define MAX_PATTERNS
-//#define MAX_BANKS 4
-#define MAX_BANKS
 
 typedef step_t pattern_t[MAX_STEPS];
-typedef pattern_t bank_t[MAX_PATTERNS];
 
 #define AMAX ((double)1.0)
 #define FILTER_MIN ((double)500)
@@ -34,8 +31,7 @@ typedef pattern_t bank_t[MAX_PATTERNS];
 #define SINE 0
 // this song inspired by kurt kurasaki - Peff.com
 char song_info[] = "this song inspired by kurt kurasaki - Peff.com";
-bank_t banks[MAX_BANKS] = {
-{
+pattern_t banks[] = {
 {
 //    n  o  p  a  s
 	{ 0, 0, 1, 0, 0},		// step1
@@ -55,7 +51,6 @@ bank_t banks[MAX_BANKS] = {
 	{ 0, 1, 1, 0, 0},		// step15
 	{ 0, 1, 0, 0, 0},		// step16
 }
-}
 };
 int song[] = {
 	0,
@@ -70,8 +65,7 @@ int song[] = {
 #define SINE 0
 // this pattern sounds like "pink floyd - on the run"
 char song_info[] = "this pattern sounds like pink floyd - on the run";
-bank_t banks[MAX_BANKS] = {
-{
+pattern_t banks[] = {
 {
 //    n  o  p  a  s
 	{ 7, 0, 1, 0, 0},		// step1
@@ -82,7 +76,6 @@ bank_t banks[MAX_BANKS] = {
 	{ 4, 1, 1, 0, 0},		// step6
 	{ 5, 1, 1, 0, 0},		// step7
 	{ 7, 1, 1, 0, 0},		// step8
-}
 }
 };
 int song[] = {
@@ -98,8 +91,7 @@ int song[] = {
 #define SINE 0
 // this song inspired by legend b - lost in love
 char song_info[] = "this song inspired by legend b - lost in love";
-bank_t banks[MAX_BANKS] = {
-{
+pattern_t banks[] = {
 {
 //    n  o  p  a  s
 	{ 9, 2, 1, 1, 0},		// step1
@@ -214,7 +206,6 @@ bank_t banks[MAX_BANKS] = {
 	{ 0, 2, 0, 0, 0},		// step15
 	{ 0, 2, 0, 0, 0},		// step16
 }
-}
 };
 int song[] = {
 	0, 0, 0, 0, 0, 0, 0, 0,
@@ -284,9 +275,7 @@ int main( int argc, char *argv[]) {
 	}
 //	else
 	{
-		int nbank = sizeof( banks) / sizeof( banks[0]);
-		int npat = sizeof( banks) / sizeof( banks[0][0]);
-//		int nbank = 1;
+		int npat = sizeof( banks) / sizeof( banks[0]);
 //		int npat = 1;
 
 		x0x_t *x0x = malloc( sizeof( x0x_t));
@@ -301,27 +290,23 @@ int main( int argc, char *argv[]) {
 		x0x->accent = __accent;
 		x0x->wave_form = __square_not_tri;
 		x0x->nbars = __square_not_tri;
-		x0x->nsteps = __steps;
 		x0x->npat = npat;
-		x0x->nbank = nbank;
 		x0x->nbars = nbars;
 		int i;
-		int b = 0;
 		int p = 0;
 		printf( "song_info=%s\n", song_info);
-		printf( "nbank=%d\n", nbank);
 		printf( "npat=%d\n", npat);
 		printf( "nsteps=%d\n", __steps);
-		for (b = 0; b < nbank; b++)
 		for (p = 0; p < npat; p++)
 		{
-			for (i = 0; i < __steps; i++)
+			x0x->nsteps[p] = __steps;
+			for (i = 0; i < x0x->nsteps[p]; i++)
 			{
-			x0x->steps[b][p][i][0] = banks[b][p][i].note;
-			x0x->steps[b][p][i][1] = banks[b][p][i].octave;
-			x0x->steps[b][p][i][2] = banks[b][p][i].play_not_silence;
-			x0x->steps[b][p][i][3] = banks[b][p][i].accent;
-			x0x->steps[b][p][i][4] = banks[b][p][i].slide;
+			x0x->steps[p][i][0] = banks[p][i].note;
+			x0x->steps[p][i][1] = banks[p][i].octave;
+			x0x->steps[p][i][2] = banks[p][i].play_not_silence;
+			x0x->steps[p][i][3] = banks[p][i].accent;
+			x0x->steps[p][i][4] = banks[p][i].slide;
 			}
 		}
 		for (i = 0; i < nbars; i++)
