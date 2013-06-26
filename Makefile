@@ -36,8 +36,8 @@ ifeq ($(HAVE_JACK_H),xouix)
 HAVE_JACK=1
 endif
 else
-HAVE_JACK_H=`if test -e /usr/include/jack/jack.h ; then echo -n oui ; else echo -n non ; fi`
-ifeq ($(HAVE_JACK_H),oui)
+HAVE_JACK_H=x$(shell if test -e "/usr/include/jack/jack.h"; then echo -n oui ; else echo -n non ; fi)x
+ifeq ($(HAVE_JACK_H),xouix)
 HAVE_JACK=1
 endif
 
