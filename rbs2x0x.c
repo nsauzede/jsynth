@@ -141,8 +141,7 @@ int main( int argc, char *argv[]) {
 					x0x->accent = tb303.tb303_accent;
 					x0x->wave_form = tb303.tb303_wave;
 #if 1
-	int npat = 32;
-	x0x->npat = npat;
+	int npat = MAXPAT;
 	printf( "nbars=%d\n", x0x->nbars);
 	int i;
 	int p = 0;

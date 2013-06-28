@@ -275,8 +275,7 @@ int main( int argc, char *argv[]) {
 	}
 //	else
 	{
-		int npat = sizeof( banks) / sizeof( banks[0]);
-//		int npat = 1;
+		int npat = MAXPAT;
 
 		x0x_t *x0x = malloc( sizeof( x0x_t));
 		memset( x0x, 0, sizeof( *x0x));
@@ -290,23 +289,34 @@ int main( int argc, char *argv[]) {
 		x0x->accent = __accent;
 		x0x->wave_form = __square_not_tri;
 		x0x->nbars = __square_not_tri;
-		x0x->npat = npat;
 		x0x->nbars = nbars;
 		int i;
 		int p = 0;
 		printf( "song_info=%s\n", song_info);
 		printf( "npat=%d\n", npat);
+		printf( "tempo=%d\n", __tempo);
 		printf( "nsteps=%d\n", __steps);
+		printf( "nbars=%d\n", nbars);
 		for (p = 0; p < npat; p++)
 		{
 			x0x->nsteps[p] = __steps;
 			for (i = 0; i < x0x->nsteps[p]; i++)
 			{
-			x0x->steps[p][i][0] = banks[p][i].note;
-			x0x->steps[p][i][1] = banks[p][i].octave;
-			x0x->steps[p][i][2] = banks[p][i].play_not_silence;
-			x0x->steps[p][i][3] = banks[p][i].accent;
-			x0x->steps[p][i][4] = banks[p][i].slide;
+				int o, pns, a, s, up, down;
+				x0x->steps[p][i][0] = banks[p][i].note;
+				o = banks[p][i].octave;
+				pns = banks[p][i].play_not_silence;
+				a = banks[p][i].accent;
+				s = banks[p][i].slide;
+				up = o == 2;
+				down = o == 0;
+				uint8_t flags =
+						((pns & 1) << 4) +
+						((down & 1) << 3) +
+						((up & 1) << 2) +
+						((a & 1) << 1) +
+						((s & 1) << 0);
+				x0x->steps[p][i][1] = flags;
 			}
 		}
 		for (i = 0; i < nbars; i++)

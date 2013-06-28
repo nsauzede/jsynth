@@ -7,7 +7,7 @@
 #include <jack/jack.h>
 
 typedef struct {
-	int note;
+	uint8_t note;
 	int octave;
 	int play_not_silence;	// 0=silence 1=play
 	int accent;
@@ -31,6 +31,7 @@ typedef step_t pattern_t[MAX_STEPS];
 #define SQUARE 0
 #define SINE 0
 char *song_info = "this song inspired by kurt kurasaki - Peff.com";
+int steplen[] = { STEPS };
 pattern_t banks[] = {
 {
 //    n  o  p  a  s
@@ -64,8 +65,8 @@ int song[] = {
 #define SQUARE 0
 #define SINE 0
 char *song_info = "this pattern sounds like pink floyd - on the run";
-bank_t banks[MAX_BANKS] = {
-{
+int steplen[] = { STEPS };
+pattern_t banks[] = {
 {
 //    n  o  p  a  s
 	{ 7, 0, 1, 0, 0},		// step1
@@ -77,9 +78,8 @@ bank_t banks[MAX_BANKS] = {
 	{ 5, 1, 1, 0, 0},		// step7
 	{ 7, 1, 1, 0, 0},		// step8
 }
-}
 };
-int song[] = {
+uint8_t song[] = {
 	0,
 };
 #elif 0
@@ -90,9 +90,16 @@ int song[] = {
 #define ACCENT 60
 #define SQUARE 1
 #define SINE 0
-// this song inspired by legend b - lost in love
-bank_t banks[MAX_BANKS] = {
-{
+char *song_info = "this song inspired by legend b - lost in love";
+uint8_t steplen[] = {
+	STEPS,
+	STEPS,
+	STEPS,
+	STEPS,
+	STEPS,
+	STEPS,
+};
+pattern_t banks[] = {
 {
 //    n  o  p  a  s
 	{ 9, 2, 1, 1, 0},		// step1
@@ -207,9 +214,8 @@ bank_t banks[MAX_BANKS] = {
 	{ 0, 2, 0, 0, 0},		// step15
 	{ 0, 2, 0, 0, 0},		// step16
 }
-}
 };
-int song[] = {
+uint8_t song[] = {
 	0, 0, 0, 0, 0, 0, 0, 0,
 	1, 1, 1, 1,
 	2, 2, 2, 2,
@@ -229,39 +235,53 @@ int song[] = {
 #define USE_X0X
 #define SINE 0
 #include "x0x.h"
-int TEMPO, STEPS, TUNE, CUTOFF, ACCENT, SQUARE, NBARS;
-int *song;
+uint32_t TEMPO;
+uint8_t TUNE, CUTOFF, ACCENT, SQUARE, NBARS;
+uint8_t *song;
 char *song_info;
-pattern_t banks[32];
+pattern_t banks[MAXPAT];
+uint8_t steplen[MAXPAT];
 int load( char *fname)
 {
 	x0x_t *x0x = x0x_load( fname);
 	TUNE = x0x->tune;
 	TEMPO = x0x->tempo;
-	printf( "tempo=%d\n", TEMPO);
-	STEPS = x0x->nsteps[0];
+	printf( "tempo=%" PRIu32 "\n", TEMPO);
 	CUTOFF = x0x->cutoff;
 	SQUARE = x0x->wave_form;
 	NBARS = x0x->nbars;
 	song_info = strdup( x0x->song_info);
-	song = malloc( sizeof( int) * x0x->nbars);
-	memcpy( song, x0x->song, sizeof( int) * x0x->nbars);
+	song = malloc( sizeof( song[0]) * x0x->nbars);
+	memcpy( song, x0x->song, sizeof( song[0]) * x0x->nbars);
 	int j, i;
-	for (j = 0; j < x0x->npat; j++)
+	uint8_t  npat = MAXPAT;
+	for (j = 0; j < npat; j++)
+	{
+		steplen[j] = x0x->nsteps[j];
 		for (i = 0; i < x0x->nsteps[j]; i++)
 		{
-			banks[j][i].note = x0x->steps[j][i][0];
-			banks[j][i].octave = x0x->steps[j][i][1];
-			banks[j][i].play_not_silence = x0x->steps[j][i][2];
-			banks[j][i].accent = x0x->steps[j][i][3];
-			banks[j][i].slide = x0x->steps[j][i][4];
+			int n, o, p, a, s;
+			uint8_t flags = x0x->steps[j][i][1];
+			n = x0x->steps[j][i][0];
+			int up, down;
+			p = !!(flags & 0x10);
+			down = !!(flags & 0x08);
+			up = !!(flags & 0x04);
+			a = !!(flags & 0x02);
+			s = !!(flags & 0x01);
+			o = up && down ? 1 : up && !down ? 2 : !up && down ? 0 : 1;
+			banks[j][i].note = n;
+			banks[j][i].octave = o;
+			banks[j][i].play_not_silence = p;
+			banks[j][i].accent = a;
+			banks[j][i].slide = s;
 		}
+	}
 	free( x0x);
 	return 0;
 }
 #define __tune TUNE
 #define __tempo TEMPO
-#define __steps STEPS
 #define __cutoff CUTOFF
 #define __square_not_tri SQUARE
 #define nbars NBARS
@@ -361,7 +381,7 @@ int process_audio( jack_nframes_t nframes, void *arg) {
 	int n = 0;
 	int _freq = 1;
 	int _tempo = __tempo;
-	int _steps = __steps;
+	int _steps = steplen[pattern];
 	int _cutoff = __cutoff;						// %
 	int _period = 750 * 20 / _tempo;			// ms
 	int _width = _period / 2;					// ms
@@ -587,13 +607,13 @@ int main( int argc, char *argv[]) {
 						case SDLK_z:
 							if (shift)
 							{
-								if (__steps < MAX_STEPS)
-									__steps++;
+								if (steplen[pattern] < MAX_STEPS)
+									steplen[pattern]++;
 							}
 							else
 							{
-								if (__steps > 1)
-									__steps--;
+								if (steplen[pattern] > 1)
+									steplen[pattern]--;
 							}
 							break;
 						case SDLK_e:
@@ -662,13 +682,13 @@ int main( int argc, char *argv[]) {
 					break;
 			}
 		}
+		int _steps = steplen[pattern];
 		if (dirty) {
 			printf( "%cWsqu=%d Xsin=%d Atempo=%d Zsteps=%d Edelay=%d Rattack=%d Thold=%d Ydecay=%d Usustain=%d Irelease=%d Ocutoff=%d Breso=%d Pvol=%d Vtune=%d\n",
-				__play_not_pause?'=':'-', __square_not_tri, __sine_not_square, __tempo, __steps, __delay, __attack, __hold, __decay, __sustain, __release, __cutoff, __reso, __volume, __tune);
+				__play_not_pause?'=':'-', __square_not_tri, __sine_not_square, __tempo, _steps, __delay, __attack, __hold, __decay, __sustain, __release, __cutoff, __reso, __volume, __tune);
 			fflush( stdout);
 			dirty = 0;
 		}
-		int _steps = __steps;
 		int _step = step;
 		static int _old_step = -1;
 		int w, h;
