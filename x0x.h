@@ -10,7 +10,7 @@ typedef struct {
 #define MAXPAT 32
 	uint8_t nsteps[MAXPAT];
 // .[0] : note
-// .[1] : flags : 4, 3, 2, 1 : pause/note, norm/down, norm/up, accent, slide
+// .[1] : flags : 4, 3, 2, 1, 0 : pause/note, norm/down, norm/up, accent, slide
 	uint8_t steps[MAXPAT][16][2];
 	uint8_t nbars;
 #define MAXBAR 128

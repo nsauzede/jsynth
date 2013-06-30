@@ -6,9 +6,6 @@
 int x0x_save( x0x_t *x0x, char *name)
 {
 	FILE *out = fopen( name, "wb");
-	printf( "%s: song_info=[%s]\n", __func__, x0x->song_info);
-	printf( "%s: nbars=%" PRIu8 "\n", __func__, x0x->nbars);
-	printf( "%s: tempo=%" PRIu32 "\n", __func__, x0x->tempo);
 	fwrite( x0x, sizeof( *x0x), 1, out);
 	fclose( out);
 
@@ -21,8 +18,6 @@ x0x_t *x0x_load( char *fname)
 	x0x = malloc( sizeof( *x0x));
 	fread( x0x, sizeof( *x0x), 1, in);
 	fclose( in);
-	printf( "%s: song_info=[%s]\n", __func__, x0x->song_info);
-	printf( "%s: nbars=%" PRIu8 "\n", __func__, x0x->nbars);
 	return x0x;
 }
 

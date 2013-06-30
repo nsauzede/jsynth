@@ -151,15 +151,12 @@ int main( int argc, char *argv[]) {
 		printf( "shuffle=%02x length=%02x\n", tb303.reserved[p * 34 + 0], tb303.reserved[p * 34 + 1]);
 		for (i = 0; i < x0x->nsteps[p]; i++)
 		{
-//			printf( "%d: tone=%02" PRIx8 "\n", i, tb303.reserved[p * 34 + 2 + i * 2 + 0]);
-//			printf( "%d: flags=%02" PRIx8 "\n", i, tb303.reserved[p * 34 + 2 + i * 2 + 1]);
+			printf( "%d: tone=%02" PRIx8 "\n", i, tb303.reserved[p * 34 + 2 + i * 2 + 0]);
+			printf( "%d: flags=%02" PRIx8 "\n", i, tb303.reserved[p * 34 + 2 + i * 2 + 1]);
 			x0x->steps[p][i][0] = tb303.reserved[p * 34 + 2 + i * 2 + 0];				//note
-			int oct = (tb303.reserved[p * 34 + 2 + i * 2 + 1] & 0xc) >> 2;
-			x0x->steps[p][i][1] = oct == 0 ? 1 : oct == 1 ? 2 : oct == 2 ? 0 : 1;	//octave;
-			x0x->steps[p][i][2] = !(tb303.reserved[p * 34 + 2 + i * 2 + 1] & 0x10);		//play_not_silence;
-			x0x->steps[p][i][3] = !!(tb303.reserved[p * 34 + 2 + i * 2 + 1] & 0x2);		//accent;
-			x0x->steps[p][i][4] = !!(tb303.reserved[p * 34 + 2 + i * 2 + 1] & 0x1);		//slide;
-#if 1
+			uint8_t flags = tb303.reserved[p * 34 + 2 + i * 2 + 1];
+			x0x->steps[p][i][1] = flags;		//flags;
+#if 0
 			printf( "%d: n=%d o=%d pns=%d a=%d s=%d\n", i
 				,x0x->steps[p][i][0]
 				,x0x->steps[p][i][1]

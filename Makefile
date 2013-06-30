@@ -3,6 +3,7 @@ TARGET+=lsrbs.exe
 TARGET+=catiff.exe
 TARGET+=mkx0x.exe
 TARGET+=rbs2x0x.exe
+TARGET+=catx0x.exe
 
 SDL_CONFIG=sdl-config
 WHICH_SDL_CONFIG:=x$(shell $(SDL_CONFIG) --cflags)x
@@ -62,6 +63,10 @@ lsrbs: lsrbs.o rbs.o
 x0x.o:x0x.h
 mkx0x.o:x0x.h
 mkx0x.exe: mkx0x.o x0x.o
+	$(CC) -o $@ $^ $(LDFLAGS)
+
+catx0x.o:x0x.h
+catx0x.exe: catx0x.o x0x.o
 	$(CC) -o $@ $^ $(LDFLAGS)
 
 rbs2x0x.o:x0x.h rbs.h
