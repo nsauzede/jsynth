@@ -1,5 +1,5 @@
 TARGET=
-TARGET+=lsrbs.exe
+TARGET+=catrbs.exe
 TARGET+=catiff.exe
 TARGET+=mkx0x.exe
 TARGET+=rbs2x0x.exe
@@ -56,8 +56,8 @@ endif
 all:$(TARGET)
 
 rbs.o:rbs.h
-lsrbs.o:rbs.h
-lsrbs: lsrbs.o rbs.o
+catrbs.o:rbs.h
+catrbs: catrbs.o rbs.o
 	$(CC) -o $@ $^ $(LDFLAGS)
 
 x0x.o:x0x.h
