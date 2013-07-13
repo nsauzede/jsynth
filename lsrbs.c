@@ -178,6 +178,7 @@ int main( int argc, char *argv[])
 
 	size -= chunk_size;
 
+	uint8_t pad = 0;
 	printf( "size0=%d\n", size);
 	while (!feof( in) && (size > 0))
 	{
@@ -220,35 +221,197 @@ int main( int argc, char *argv[])
 			else
 			if (!strncmp( chunk.chunk_id, "TRAK", 4))
 			{
+        char *traks[] = {
+          "mixer", "tb303a", "tb303b", "tr808", "tr909", "delay", "dist", "pcf", "compr"
+        };
+        static int count = 0;
 				uint32_t trak_nevents;
 				fread( &trak_nevents, 4, 1, in);
 				trak_nevents = ntohl( trak_nevents);
-				printf( "trak_nevents=%" PRIu32 " (%" PRIx32 ")\n", trak_nevents, trak_nevents);
-				chunk_size -= 4;
-				size -= 4;
-				if (chunk_size & 1)
-					chunk_size++;
-				size -= chunk_size;
+				printf( "%s trak_nevents=%" PRIu32 " (%" PRIx32 ")\n", traks[count], trak_nevents, trak_nevents);
 				int i;
-				buf = malloc( chunk_size);
-				fread( buf, chunk_size, 1, in);
-				for (i = 0; i < chunk_size; i++)
+				uint32_t abspos = 0;
+				for (i = 0; i < trak_nevents; i++)
 				{
-					uint8_t b = buf[i];
-					printf( " %02" PRIx8, b);
-					if (i >= 10)
+          printf( "event#%d :", i);
+					fread( &pad, 1, 1, in);
+//          printf( " pad=%" PRIu8, pad);
+					uint32_t deltapos;
+          deltapos = pad;
+					if (pad & 0x80)
 					{
-						printf( "..");
-						break;
+            deltapos &= 0x7f;
+            do {
+              fread( &pad, 1, 1, in);
+//              printf( " pad=%" PRIu8, pad);
+              deltapos = (deltapos << 7) | (pad & 0x7f);
+            } while (pad & 0x80);
 					}
+					abspos += deltapos;
+//          printf( " deltapos=%" PRIu32, deltapos);
+          printf( " abspos=%" PRIu32, abspos);
+          fread( &pad, 1, 1, in);
+          char *traktype( int trak, int ID)
+          {
+            char *ret = "??";
+            switch (trak)
+            {
+              case 0://mixer
+                switch (ID)
+                {
+                  case 0x01: ret = "Compressor device id";break;
+                  case 0x02: ret = "PCF device id";break;
+                  case 0x06: ret = "TB303 1 mix level";break;
+                  case 0x07: ret = "TB303 1 pan";break;
+                  case 0x08: ret = "TB303 1 delay send amt";break;
+                  case 0x09: ret = "TB303 1 dist enabled";break;
+                  case 0x0c: ret = "TB303 2 mix level";break;
+                  case 0x0d: ret = "TB303 2 pan";break;
+                  case 0x0e: ret = "TB303 2 delay send amt";break;
+                  case 0x0f: ret = "TB303 2 dist enabled";break;
+                  case 0x12: ret = "TR808 mix level";break;
+                  case 0x13: ret = "TR808 pan";break;
+                  case 0x14: ret = "TR808 delay send amt";break;
+                  case 0x15: ret = "TR808 dist enabled";break;
+                  case 0x18: ret = "TR909 mix level";break;
+                  case 0x19: ret = "TR909 pan";break;
+                  case 0x1a: ret = "TR909 delay send amt";break;
+                  case 0x1b: ret = "TR909 dist enabled";break;
+                }
+                break;
+              case 1: case 2://tb303
+                switch (ID)
+                {
+                  case 0x00: ret = "Enabled";break;
+                  case 0x01: ret = "Selected pattern";break;
+                  case 0x02: ret = "Tune";break;
+                  case 0x03: ret = "Cutoff";break;
+                  case 0x04: ret = "Resonance";break;
+                  case 0x05: ret = "EnvMod";break;
+                  case 0x06: ret = "Decay";break;
+                  case 0x07: ret = "Accent";break;
+                  case 0x08: ret = "Waveform";break;
+                }
+                break;
+              case 3://tb808
+                switch (ID)
+                {
+                  case 0x00: ret = "Enabled";break;
+                  case 0x01: ret = "Selected pattern";break;
+                  case 0x02: ret = "AccentLevel";break;
+                  case 0x03: ret = "BassLevel";break;
+                  case 0x04: ret = "BassTone";break;
+                  case 0x05: ret = "BassDecay";break;
+                  case 0x06: ret = "SnareLevel";break;
+                  case 0x07: ret = "SnareTone";break;
+                  case 0x08: ret = "SnareSnappy";break;
+                  case 0x09: ret = "LowTomLevel";break;
+                  case 0x0a: ret = "LowTomTuning";break;
+                  case 0x0b: ret = "LowTomSelector";break;
+                  case 0x0c: ret = "MidTomLevel";break;
+                  case 0x0d: ret = "MidTomTuning";break;
+                  case 0x0e: ret = "MidTomSelector";break;
+                  case 0x0f: ret = "HiTomLevel";break;
+                  case 0x10: ret = "HiTomTuning";break;
+                  case 0x11: ret = "HiTomSelector";break;
+                  case 0x12: ret = "RimShotLevel";break;
+                  case 0x13: ret = "RimShotSelector";break;
+                  case 0x14: ret = "ClapLevel";break;
+                  case 0x15: ret = "ClapSelector";break;
+                  case 0x16: ret = "CowBellLevel";break;
+                  case 0x17: ret = "CymbalLevel";break;
+                  case 0x18: ret = "CymbalTone";break;
+                  case 0x19: ret = "CymbalDecay";break;
+                  case 0x1a: ret = "OpenHiHatLevel";break;
+                  case 0x1b: ret = "OpenHiHatDecay";break;
+                  case 0x1c: ret = "ClosedHiHatLevel";break;
+                }
+                break;
+              case 4://tb909
+                switch (ID)
+                {
+                  case 0x00: ret = "Enabled";break;
+                  case 0x01: ret = "Selected pattern";break;
+                  case 0x02: ret = "AccentLevel";break;
+                  case 0x03: ret = "BassLevel";break;
+                  case 0x04: ret = "BassTune";break;
+                  case 0x05: ret = "BassAttack";break;
+                  case 0x06: ret = "BassDecay";break;
+                  case 0x07: ret = "SnareLevel";break;
+                  case 0x08: ret = "SnareTune";break;
+                  case 0x09: ret = "SnareTone";break;
+                  case 0x0a: ret = "SnareSnappy";break;
+                  case 0x0b: ret = "LowTomLevel";break;
+                  case 0x0c: ret = "LowTomTune";break;
+                  case 0x0d: ret = "LowTomDecay";break;
+                  case 0x0e: ret = "MidTomLevel";break;
+                  case 0x0f: ret = "MidTomTune";break;
+                  case 0x10: ret = "MidTomDecay";break;
+                  case 0x11: ret = "HiTomLevel";break;
+                  case 0x12: ret = "HiTomTune";break;
+                  case 0x13: ret = "HiTomDecay";break;
+                  case 0x14: ret = "RimShotLevel";break;
+                  case 0x15: ret = "ClapLevel";break;
+                  case 0x16: ret = "HiHatLevel";break;
+                  case 0x17: ret = "ClosedHiHatDecay";break;
+                  case 0x18: ret = "OpenHiHatDecay";break;
+                  case 0x19: ret = "CrashCymbalLevel";break;
+                  case 0x1a: ret = "CrashCymbalTune";break;
+                  case 0x1b: ret = "RideCymbalLevel";break;
+                  case 0x1c: ret = "RideCymbalTune";break;
+                  case 0x1d: ret = "FlamInterval";break;
+                }
+                break;
+              case 5://delay
+                switch (ID)
+                {
+                  case 0x00: ret = "Enabled";break;
+                  case 0x01: ret = "Steps";break;
+                  case 0x02: ret = "Step mode";break;
+                  case 0x03: ret = "Feedback amount";break;
+                  case 0x04: ret = "Pan";break;
+                }
+              case 6://dist
+                switch (ID)
+                {
+                  case 0x00: ret = "Enabled";break;
+                  case 0x01: ret = "Amount";break;
+                  case 0x02: ret = "Shape (0x00 = 1.5 mode)";break;
+                }
+              case 7://pcf
+                switch (ID)
+                {
+                  case 0x00: ret = "Enabled";break;
+                  case 0x01: ret = "Frequency";break;
+                  case 0x02: ret = "Resonance";break;
+                  case 0x03: ret = "Amount";break;
+                  case 0x04: ret = "Wave";break;
+                  case 0x05: ret = "Decay";break;
+                  case 0x06: ret = "Mode";break;
+                }
+              case 8://compressor
+                switch (ID)
+                {
+                  case 0x00: ret = "Enabled";break;
+                  case 0x01: ret = "Amount";break;
+                  case 0x02: ret = "Threshold";break;
+                }
+                break;
+            }
+            return ret;
+          }
+          
+          printf( " ID=%" PRIu8 " %s", pad, traktype( count, pad));
+          fread( &pad, 1, 1, in);
+          printf( " val=%" PRIu8, pad);
+          printf( "\n");
 				}
-				printf( "\n");
-				free( buf);
+				if (chunk_size & 1)
+					fread( &pad, 1, 1, in);
+				count++;
 			}
 			else
 			{
-			if (chunk_size & 1)
-				chunk_size++;				// IFF specification mandates padding for odd lengths
 			buf = malloc( chunk_size);
 			fread( buf, chunk_size, 1, in);
 			size -= chunk_size;
@@ -265,6 +428,8 @@ int main( int argc, char *argv[])
 			}
 			printf( "\n");
 			free( buf);
+			if (chunk_size & 1)
+				fread( &pad, 1, 1, in);				// IFF specification mandates padding for odd lengths
 			}
 		}
 	}
