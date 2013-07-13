@@ -4,7 +4,10 @@
 #include <string.h>
 #include <malloc.h>
 
-#include "rbs.h"
+typedef struct {
+  uint8_t chunk_id[4];
+  uint32_t chunk_data_size;
+} chunk_t;
 
 uint32_t ntohl( uint32_t val)
 {
@@ -36,7 +39,7 @@ int main( int argc, char *argv[])
 	}
 	if (!fname)
 	{
-		printf( "usage: rbs <file.rbs>\n");
+		printf( "usage: catiff <iff_file>\n");
 		exit( 0);
 	}
 	FILE *in;
@@ -55,6 +58,8 @@ int main( int argc, char *argv[])
 		memset( str, 0, sizeof( str));
 		chunk_t chunk;
 		fread( &chunk, sizeof( chunk), 1, in);
+    if (feof( in))
+      break;
 		chunk_size = ntohl( chunk.chunk_data_size);
 		strncpy( str, chunk.chunk_id, 4);
 		if (!chunkname || !strcmp( chunkname, str))
@@ -68,10 +73,11 @@ int main( int argc, char *argv[])
 		}
 		else
 		{
-			if (chunk_size & 1)
-				chunk_size++;				// IFF spec mandates padding for odd lengths
 			buf = malloc( chunk_size);
 			fread( buf, chunk_size, 1, in);
+			uint8_t pad = 0;
+      if (chunk_size & 1)
+        fread( &pad, 1, 1, in);				// IFF spec mandates padding for odd lengths
 			if (disp)
 			{
 				int i;
@@ -94,4 +100,3 @@ int main( int argc, char *argv[])
 
 	return 0;
 }
-

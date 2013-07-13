@@ -46,7 +46,6 @@ int main( int argc, char *argv[])
 		exit( 1);
 	}
 	uint32_t size;
-	uint32_t data;
 
 	rbs_t rbs;
 	fread( &rbs, sizeof( rbs), 1, in);
@@ -88,9 +87,10 @@ int main( int argc, char *argv[])
 	}
 	size = ntohl( glob.chunk_data_size);
 	printf( "chunk ID GLOB, size=%" PRIu32 "\n", size);
-#if 0
+#if 1
 	printf( "glob chunk !!\n");
 #else
+	uint32_t data;
 	printf( "play_mode=%" PRIx8 "\n", glob.play_mode);
 	printf( "loop=%" PRIx8 "\n", glob.loop);
 	data = ntohl( glob.tempo);
@@ -178,27 +178,31 @@ int main( int argc, char *argv[])
 
 	size -= chunk_size;
 
-	while (!feof( in) && size > 0)
+	printf( "size0=%d\n", size);
+	while (!feof( in) && (size > 0))
 	{
+//		printf( "size=%d\n", size);
 		uint8_t *buf;
 		chunk_t chunk;
 		fread( &chunk, sizeof( chunk), 1, in);
+		if (feof( in))
+      break;
 		chunk_size = ntohl( chunk.chunk_data_size);
 		if (!strncmp( chunk.chunk_id, "CAT ", 4))
 		{
 			char str[5];
 			memset( str, 0, 5);
 			fread( str, 4, 1, in);
-			printf( "Subchunk ID %4s\n", chunk.chunk_id);
+			printf( "Subchunk ID %4s : %s\n", chunk.chunk_id, str);
 		}
 		else
 		{
-			printf( "chunk ID %4s, size=%" PRIu32 "\n", chunk.chunk_id, chunk_size);
+			printf( "chunk ID %4s, size=%" PRIu32 " (%" PRIx32 ")\n", chunk.chunk_id, chunk_size, chunk_size);
 			if (!strncmp( chunk.chunk_id, "303 ", 4))
 			{
 				tb303_t tb303;
 				fread( (char *)&tb303 + sizeof( chunk), sizeof( tb303) - sizeof( chunk), 1, in);
-#if 0
+#if 1
 				printf( "303 chunk !!\n");
 #else
 				printf( "enabled=%d\n", tb303.tb303_enabled);
@@ -211,6 +215,35 @@ int main( int argc, char *argv[])
 				printf( "accent=%d\n", tb303.tb303_accent);
 				printf( "waveform=%d\n", tb303.tb303_wave);
 #endif
+				size -= chunk_size;
+			}
+			else
+			if (!strncmp( chunk.chunk_id, "TRAK", 4))
+			{
+				uint32_t trak_nevents;
+				fread( &trak_nevents, 4, 1, in);
+				trak_nevents = ntohl( trak_nevents);
+				printf( "trak_nevents=%" PRIu32 " (%" PRIx32 ")\n", trak_nevents, trak_nevents);
+				chunk_size -= 4;
+				size -= 4;
+				if (chunk_size & 1)
+					chunk_size++;
+				size -= chunk_size;
+				int i;
+				buf = malloc( chunk_size);
+				fread( buf, chunk_size, 1, in);
+				for (i = 0; i < chunk_size; i++)
+				{
+					uint8_t b = buf[i];
+					printf( " %02" PRIx8, b);
+					if (i >= 10)
+					{
+						printf( "..");
+						break;
+					}
+				}
+				printf( "\n");
+				free( buf);
 			}
 			else
 			{
@@ -218,6 +251,7 @@ int main( int argc, char *argv[])
 				chunk_size++;				// IFF specification mandates padding for odd lengths
 			buf = malloc( chunk_size);
 			fread( buf, chunk_size, 1, in);
+			size -= chunk_size;
 			int i;
 			for (i = 0; i < chunk_size; i++)
 			{
@@ -232,7 +266,6 @@ int main( int argc, char *argv[])
 			printf( "\n");
 			free( buf);
 			}
-			size -= chunk_size;
 		}
 	}
 
