@@ -233,7 +233,7 @@ int main( int argc, char *argv[])
 				uint32_t abspos = 0;
 				for (i = 0; i < trak_nevents; i++)
 				{
-          printf( "event#%d :", i);
+          printf( "%s event#%d :", traks[count], i);
 					fread( &pad, 1, 1, in);
 //          printf( " pad=%" PRIu8, pad);
 					uint32_t deltapos;

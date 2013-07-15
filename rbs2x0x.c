@@ -72,6 +72,8 @@ int main( int argc, char *argv[]) {
     	uint32_t chunk_size;
     	chunk_t chunk;
         fread( &chunk, sizeof( chunk), 1, in);
+	if (feof( in))
+		break;
         chunk_size = ntohl( chunk.chunk_data_size);
         if (!strncmp( chunk.chunk_id, "CAT ", 4))
         {
@@ -140,7 +142,7 @@ int main( int argc, char *argv[]) {
 					x0x->envmod = tb303.tb303_env_mod;
 					x0x->accent = tb303.tb303_accent;
 					x0x->wave_form = tb303.tb303_wave;
-#if 1
+#if 0
 	int npat = MAXPAT;
 	printf( "nbars=%d\n", x0x->nbars);
 	int i;
@@ -176,16 +178,31 @@ int main( int argc, char *argv[]) {
 #endif
 				}
             }
-#if 0
+#if 1
             else if (!strncmp( chunk.chunk_id, "TRAK", 4))
             {
-                trak_t trak;
-                fread( (char *)&trak + sizeof( chunk), sizeof( trak) - sizeof( chunk), 1, in);
-				static int count = 0;
-				if (count++ == 0)
-				{
-	            }
-	        }
+//                trak_t trak;
+//                fread( (char *)&trak + sizeof( chunk), sizeof( trak) - sizeof( chunk), 1, in);
+                if (chunk_size & 1)
+			chunk_size++;
+                void *buf = malloc( chunk_size);
+                fread( buf, chunk_size, 1, in);
+		free( buf);
+		size -= chunk_size;
+		static int count = 0;
+		switch (count++)
+		{
+			case 0:	printf( "MIXER\n");break;
+			case 1:	printf( "TB303A\n");break;
+			case 2:	printf( "TB303B\n");break;
+			case 3:	printf( "TR808\n");break;
+			case 4:	printf( "TR909\n");break;
+			case 5:	printf( "DELAY\n");break;
+			case 6:	printf( "DIST\n");break;
+			case 7:	printf( "PCF\n");break;
+			case 8:	printf( "COMPR\n");break;
+		}
+	    }
 #endif
             else
             {
