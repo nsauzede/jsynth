@@ -61,12 +61,12 @@ int main( int argc, char *argv[])
     if (feof( in))
       break;
 		chunk_size = ntohl( chunk.chunk_data_size);
-		strncpy( str, chunk.chunk_id, 4);
+		strncpy( str, (char *)chunk.chunk_id, 4);
 		if (!chunkname || !strcmp( chunkname, str))
 			disp = 1;
 		if (disp)
 			printf( "chunk ID %s, size=%" PRIu32 "\n", str, chunk_size);
-		if (!strncmp( chunk.chunk_id, "CAT ", 4))
+		if (!strncmp( (char *)chunk.chunk_id, "CAT ", 4))
 		{
 			fread( str, 4, 1, in);
 			printf( "IFF Subgroup ID %s\n", str);
