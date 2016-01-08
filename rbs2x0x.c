@@ -18,6 +18,28 @@ uint32_t ntohl( uint32_t val)
     return result;
 }
 
+int read_event_pos( uint32_t *_deltapos, FILE *in)
+{
+	int n = 0;
+	uint32_t deltapos;
+	uint8_t pad = 0;
+	fread( &pad, 1, 1, in);
+	n++;
+	deltapos = pad;
+	if (pad & 0x80)
+	{
+		deltapos &= 0x7f;
+		do {
+			fread( &pad, 1, 1, in);
+			n++;
+			deltapos = (deltapos << 7) | (pad & 0x7f);
+		} while (pad & 0x80);
+	}
+	if (_deltapos)
+		*_deltapos = deltapos;
+	return 0;
+}
+
 int main( int argc, char *argv[]) {
 #ifdef WIN32
 	freopen( "CON", "w", stdout );
@@ -183,24 +205,49 @@ int main( int argc, char *argv[]) {
             {
 //                trak_t trak;
 //                fread( (char *)&trak + sizeof( chunk), sizeof( trak) - sizeof( chunk), 1, in);
+		int do_it = 0;
+		static int count = 0;
+		printf( "%s\n", trak_str( count));
+		if (count == EVENT_TB303A)
+			do_it = 1;
+		count++;
+		if (do_it)
+		{
+				uint32_t trak_nevents;
+				fread( &trak_nevents, 4, 1, in);
+				trak_nevents = ntohl( trak_nevents);
+				size -= 4;
+				printf( "%s trak_nevents=%" PRIu32 "\n", trak_str( count), trak_nevents);
+				int i;
+				uint32_t abspos = 0;
+				for (i = 0; i < trak_nevents; i++)
+				{
+					uint32_t deltapos = 0;
+					uint8_t id, val;
+					int n;
+					n = read_event_pos( &deltapos, in);
+					abspos += deltapos;
+					fread( &id, 1, 1, in);
+					fread( &val, 1, 1, in);
+					if (id == EVENT_TB303_SELECTED_PATTERN)
+					printf( "%s event %d: abspos=%" PRIu32 " ID=%" PRIu8 " (%s) val=%" PRIu8 "\n", trak_str( count), i, abspos, id, event_tb303_str( id), val);
+					size -= n;
+				}
+				uint8_t pad = 0;
+                if (chunk_size & 1)
+				{
+					fread( &pad, 1, 1, in);
+					size -= 1;
+				}
+		}
+		else
+		{
                 if (chunk_size & 1)
 			chunk_size++;
                 void *buf = malloc( chunk_size);
                 fread( buf, chunk_size, 1, in);
 		free( buf);
 		size -= chunk_size;
-		static int count = 0;
-		switch (count++)
-		{
-			case 0:	printf( "MIXER\n");break;
-			case 1:	printf( "TB303A\n");break;
-			case 2:	printf( "TB303B\n");break;
-			case 3:	printf( "TR808\n");break;
-			case 4:	printf( "TR909\n");break;
-			case 5:	printf( "DELAY\n");break;
-			case 6:	printf( "DIST\n");break;
-			case 7:	printf( "PCF\n");break;
-			case 8:	printf( "COMPR\n");break;
 		}
 	    }
 #endif

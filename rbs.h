@@ -265,5 +265,208 @@ uint8_t reserved[58];		/*0x0f 	1086 	Reserved 	all zeros*/
 
 #pragma pack()
 
+enum trak_event_t {
+	EVENT_MIXER = 0,
+	EVENT_TB303A = 1,
+	EVENT_TB303B = 2,
+	EVENT_TR808 = 3,
+	EVENT_TR909 = 4,
+	EVENT_DELAY = 5,
+	EVENT_DIST = 6,
+	EVENT_PCF = 7,
+	EVENT_COMPR = 8,
+};
+const char *trak_event_str[] = {
+	"mixer",
+	"tb303_a",
+	"tb303_b",
+	"tr808",
+	"tr909",
+	"delay",
+	"dist",
+	"pcf",
+	"compr",
+};
+#define trak_str(num) trak_event_str[num]
+enum mixer_event_t {
+	EVENT_MIXER_COMPR_DEV_ID = 0x01,//: ret = "Compressor device id";break;
+	EVENT_MIXER_PCF_DEV_ID = 0x02,//                 case : ret = "PCF device id";break;
+	EVENT_MIXER_TB303A_MIX_LEVEL = 0x06,//                  case : ret = "TB303 1 mix level";break;
+	EVENT_MIXER_TB303A_PAN = 0x07,//                  case : ret = "TB303 1 pan";break;
+	EVENT_MIXER_TB303A_DELAY = 0x08,//                  case : ret = "TB303 1 delay send amt";break;
+	EVENT_MIXER_TB303A_DIST = 0x09,//                  case : ret = "TB303 1 dist enabled";break;
+	EVENT_MIXER_TB303B_MIX_LEVEL = 0x0c,//                  case : ret = "TB303 2 mix level";break;
+	EVENT_MIXER_TB303B_PAN = 0x0d,//                  case : ret = "TB303 2 pan";break;
+	EVENT_MIXER_TB303B_DELAY = 0x0e,//                  case : ret = "TB303 2 delay send amt";break;
+	EVENT_MIXER_TB303B_DIST = 0x0f,//                  case : ret = "TB303 2 dist enabled";break;
+	EVENT_MIXER_TR808_MIX_LEVEL = 0x12,//                  case : ret = "TR808 mix level";break;
+	EVENT_MIXER_TR808_PAN = 0x13,//                  case : ret = "TR808 pan";break;
+	EVENT_MIXER_TR808_DELAY = 0x14,//                  case : ret = "TR808 delay send amt";break;
+	EVENT_MIXER_TR808_DIST = 0x15,//                  case : ret = "TR808 dist enabled";break;
+	EVENT_MIXER_TR909_MIX_LEVEL = 0x18,//                  case : ret = "TR909 mix level";break;
+	EVENT_MIXER_TR909_PAN = 0x19,//                  case : ret = "TR909 pan";break;
+	EVENT_MIXER_TR909_DELAY = 0x1a,//                  case : ret = "TR909 delay send amt";break;
+	EVENT_MIXER_TR909_DIST = 0x1b,//                  case : ret = "TR909 dist enabled";break;
+};
+const char *mixer_event_str[] = {
+	"unknown_mixer_event_0??",//0
+	"Compressor device id",//1
+	"PCF device id",//2
+	"unknown_mixer_event_3??",
+	"unknown_mixer_event_4??",
+	"unknown_mixer_event_5??",
+	"TB303 1 mix level",//6
+	"TB303 1 pan",//7
+	"TB303 1 delay send amt",//8
+	"TB303 1 dist enabled",//9
+	"unknown_mixer_event_a??",
+	"unknown_mixer_event_b??",
+	"TB303 2 mix level",//c
+	"TB303 2 pan",//d
+	"TB303 2 delay send amt",//e
+	"TB303 2 dist enabled",//f
+	"unknown_mixer_event_10??",
+	"unknown_mixer_event_11??",
+	"TR808 mix level",//12
+	"TR808 pan",//13
+	"TR808 delay send amt",//14
+	"TR808 dist enabled",//15
+	"unknown_mixer_event_16??",
+	"unknown_mixer_event_17??",
+	"TR909 mix level",//18
+	"TR909 pan",//19
+	"TR909 delay send amt",//1a
+	"TR909 dist enabled",//1b
+};
+
+enum tb303_event_t {
+	EVENT_TB303_ENABLED = 0x00,//: ret = "Enabled";break;
+	EVENT_TB303_SELECTED_PATTERN = 0x01, //: ret = "Selected pattern";break;
+	EVENT_TB303_TUNE = 0x02, //: ret = "Tune";break;
+	EVENT_TB303_CUTOFF = 0x03, //: ret = "Cutoff";break;
+	EVENT_TB303_RESONANCE = 0x04, //: ret = "Resonance";break;
+	EVENT_TB303_ENVMOD = 0x05, //: ret = "EnvMod";break;
+	EVENT_TB303_DECAY = 0x06, //: ret = "Decay";break;
+	EVENT_TB303_ACCENT = 0x07, //: ret = "Accent";break;
+	EVENT_TB303_WAVEFORM = 0x08, //: ret = "Waveform";break;
+};
+const char *tb303_event_str[] = {
+	"Enabled",
+	"Selected pattern",
+	"Tune",
+	"Cutoff",
+	"Resonance",
+	"EnvMod",
+	"Decay",
+	"Accent",
+	"Waveform",
+};
+#define event_tb303_str(num) tb303_event_str[num]
+#if 0
+break;
+              case 3://tb808
+                switch (ID)
+                {
+                  case 0x00: ret = "Enabled";break;
+                  case 0x01: ret = "Selected pattern";break;
+                  case 0x02: ret = "AccentLevel";break;
+                  case 0x03: ret = "BassLevel";break;
+                  case 0x04: ret = "BassTone";break;
+                  case 0x05: ret = "BassDecay";break;
+                  case 0x06: ret = "SnareLevel";break;
+                  case 0x07: ret = "SnareTone";break;
+                  case 0x08: ret = "SnareSnappy";break;
+                  case 0x09: ret = "LowTomLevel";break;
+                  case 0x0a: ret = "LowTomTuning";break;
+                  case 0x0b: ret = "LowTomSelector";break;
+                  case 0x0c: ret = "MidTomLevel";break;
+                  case 0x0d: ret = "MidTomTuning";break;
+                  case 0x0e: ret = "MidTomSelector";break;
+                  case 0x0f: ret = "HiTomLevel";break;
+                  case 0x10: ret = "HiTomTuning";break;
+                  case 0x11: ret = "HiTomSelector";break;
+                  case 0x12: ret = "RimShotLevel";break;
+                  case 0x13: ret = "RimShotSelector";break;
+                  case 0x14: ret = "ClapLevel";break;
+                  case 0x15: ret = "ClapSelector";break;
+                  case 0x16: ret = "CowBellLevel";break;
+                  case 0x17: ret = "CymbalLevel";break;
+                  case 0x18: ret = "CymbalTone";break;
+                  case 0x19: ret = "CymbalDecay";break;
+                  case 0x1a: ret = "OpenHiHatLevel";break;
+                  case 0x1b: ret = "OpenHiHatDecay";break;
+                  case 0x1c: ret = "ClosedHiHatLevel";break;
+                }
+                break;
+              case 4://tb909
+                switch (ID)
+                {
+                  case 0x00: ret = "Enabled";break;
+                  case 0x01: ret = "Selected pattern";break;
+                  case 0x02: ret = "AccentLevel";break;
+                  case 0x03: ret = "BassLevel";break;
+                  case 0x04: ret = "BassTune";break;
+                  case 0x05: ret = "BassAttack";break;
+                  case 0x06: ret = "BassDecay";break;
+                  case 0x07: ret = "SnareLevel";break;
+                  case 0x08: ret = "SnareTune";break;
+                  case 0x09: ret = "SnareTone";break;
+                  case 0x0a: ret = "SnareSnappy";break;
+                  case 0x0b: ret = "LowTomLevel";break;
+                  case 0x0c: ret = "LowTomTune";break;
+                  case 0x0d: ret = "LowTomDecay";break;
+                  case 0x0e: ret = "MidTomLevel";break;
+                  case 0x0f: ret = "MidTomTune";break;
+                  case 0x10: ret = "MidTomDecay";break;
+                  case 0x11: ret = "HiTomLevel";break;
+                  case 0x12: ret = "HiTomTune";break;
+                  case 0x13: ret = "HiTomDecay";break;
+                  case 0x14: ret = "RimShotLevel";break;
+                  case 0x15: ret = "ClapLevel";break;
+                  case 0x16: ret = "HiHatLevel";break;
+                  case 0x17: ret = "ClosedHiHatDecay";break;
+                  case 0x18: ret = "OpenHiHatDecay";break;
+                  case 0x19: ret = "CrashCymbalLevel";break;
+                  case 0x1a: ret = "CrashCymbalTune";break;
+                  case 0x1b: ret = "RideCymbalLevel";break;
+                  case 0x1c: ret = "RideCymbalTune";break;
+                  case 0x1d: ret = "FlamInterval";break;
+                }
+                break;
+              case 5://delay
+                switch (ID)
+                {
+                  case 0x00: ret = "Enabled";break;
+                  case 0x01: ret = "Steps";break;
+                  case 0x02: ret = "Step mode";break;
+                  case 0x03: ret = "Feedback amount";break;
+                  case 0x04: ret = "Pan";break;
+                }
+              case 6://dist
+                switch (ID)
+                {
+                  case 0x00: ret = "Enabled";break;
+                  case 0x01: ret = "Amount";break;
+                  case 0x02: ret = "Shape (0x00 = 1.5 mode)";break;
+                }
+              case 7://pcf
+                switch (ID)
+                {
+                  case 0x00: ret = "Enabled";break;
+                  case 0x01: ret = "Frequency";break;
+                  case 0x02: ret = "Resonance";break;
+                  case 0x03: ret = "Amount";break;
+                  case 0x04: ret = "Wave";break;
+                  case 0x05: ret = "Decay";break;
+                  case 0x06: ret = "Mode";break;
+                }
+              case 8://compressor
+                switch (ID)
+                {
+                  case 0x00: ret = "Enabled";break;
+                  case 0x01: ret = "Amount";break;
+                  case 0x02: ret = "Threshold";break;
+#endif
+
 #endif/*__RBS_H__*/
 
