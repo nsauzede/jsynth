@@ -77,6 +77,7 @@ jsynth.exe:CFLAGS+=$(SCFLAGS)
 jsynth.exe:CFLAGS+=$(JCFLAGS)
 jsynth.exe:LDFLAGS+=$(SLDFLAGS)
 jsynth.exe:LDFLAGS+=$(JLDFLAGS)
+jsynth.exe:LDFLAGS+=-lm
 
 jynth.o:x0x.h
 jsynth.exe: jsynth.o x0x.o
