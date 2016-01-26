@@ -50,6 +50,7 @@ int main( int argc, char *argv[])
 		exit( 1);
 	}
 	uint32_t chunk_size;
+	int is_iff = 0;
 	while (!feof( in))
 	{
 		uint8_t *buf;
@@ -68,6 +69,7 @@ int main( int argc, char *argv[])
 			printf( "chunk ID %s, size=%" PRIu32 "\n", str, chunk_size);
 		if (!strncmp( (char *)chunk.chunk_id, "CAT ", 4))
 		{
+			is_iff = 1;
 			fread( str, 4, 1, in);
 			printf( "IFF Subgroup ID %s\n", str);
 		}
@@ -75,9 +77,12 @@ int main( int argc, char *argv[])
 		{
 			buf = malloc( chunk_size);
 			fread( buf, chunk_size, 1, in);
-			uint8_t pad = 0;
-      if (chunk_size & 1)
-        fread( &pad, 1, 1, in);				// IFF spec mandates padding for odd lengths
+			if (is_iff)
+			{
+				uint8_t pad = 0;
+				if (chunk_size & 1)
+					fread( &pad, 1, 1, in);				// IFF spec mandates padding for odd lengths
+			}
 			if (disp)
 			{
 				int i;
