@@ -4,6 +4,7 @@ TARGET+=catiff.exe
 TARGET+=mkx0x.exe
 TARGET+=rbs2x0x.exe
 TARGET+=catx0x.exe
+TARGET+=catmid.exe
 
 SDL_CONFIG=sdl-config
 WHICH_SDL_CONFIG:=x$(shell $(SDL_CONFIG) --cflags)x
