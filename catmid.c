@@ -9,6 +9,9 @@ typedef struct {
   uint32_t chunk_data_size;
 } chunk_t;
 
+#ifndef _WIN32
+#include <arpa/inet.h>
+#else
 uint32_t ntohl( uint32_t val)
 {
 	uint32_t result;
@@ -19,6 +22,7 @@ uint32_t ntohl( uint32_t val)
 		((val & 0xff000000) >> 24);
 	return result;
 }
+#endif
 
 int main( int argc, char *argv[])
 {
