@@ -4,32 +4,19 @@
 #include <string.h>
 #include <malloc.h>
 
+#ifdef _WIN32
+#include <winsock.h>
+#else
+#include <arpa/inet.h>
+#endif
+
 typedef struct {
   uint8_t chunk_id[4];
   uint32_t chunk_data_size;
 } chunk_t;
 
-#ifndef _WIN32
-#include <arpa/inet.h>
-#else
-uint32_t ntohl( uint32_t val)
-{
-	uint32_t result;
-
-	result = ((val & 0x000000ff) << 24) +
-		((val & 0x0000ff00) << 8) +
-		((val & 0x00ff0000) >> 8) +
-		((val & 0xff000000) >> 24);
-	return result;
-}
-#endif
-
 int main( int argc, char *argv[])
 {
-#ifdef WIN32
-	setbuf(stdout, 0);
-#endif
-
 	char *chunkname = 0;
 	char *fname = 0;
 	int arg = 1;

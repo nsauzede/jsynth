@@ -1,4 +1,10 @@
-TARGET=
+_SYS:=$(shell uname -o)
+ifeq ($(_SYS),Msys)
+WIN32:=1
+endif
+
+
+TARGET:=
 TARGET+=catrbs.exe
 TARGET+=catiff.exe
 TARGET+=mkx0x.exe
@@ -6,42 +12,35 @@ TARGET+=rbs2x0x.exe
 TARGET+=catx0x.exe
 TARGET+=catmid.exe
 
-SDL_CONFIG=sdl-config
-WHICH_SDL_CONFIG:=x$(shell $(SDL_CONFIG) --cflags)x
-ifneq ($(WHICH_SDL_CONFIG),xx)
-HAVE_SDL=1
+SDL_CONFIG:=sdl-config
+TEST_SDL_CONFIG:=x$(shell $(SDL_CONFIG) >& /dev/null)x
+ifneq ($(WHICH_SDL_CONFIG),x127x)
+HAVE_SDL:=1
 endif
 
-CFLAGS=-Wall -Werror
+CFLAGS:=-Wall -Werror
 #CFLAGS+=-O2
 CFLAGS+=-g -O0
 
 SCFLAGS+=`sdl-config --cflags`
 SLDFLAGS+=`sdl-config --libs`
 
-UNAME=$(shell uname)
-ifeq ($(UNAME),MINGW32_NT-6.1)
-WIN32=1
-LDFLAGS+=-mno-windows
-CFLAGS+=-mno-windows
-endif
-
 ifdef WIN32
-#JACK="/c/Program Files/Jack v1.9.6"
-JACK="/c/Program Files (x86)/Jack"
+#JACK:="/c/Program Files/Jack v1.9.6"
+JACK:="/c/Program Files (x86)/Jack"
 JCFLAGS+=-I$(JACK)/includes
 #JLDFLAGS+=-L$(JACK)/lib
 #JLDFLAGS+=-ljack
 JLDFLAGS+=$(JACK)/lib/libjack.lib
-JACK_H="$(JACK)/includes/jack/jack.h"
+JACK_H:="$(JACK)/includes/jack/jack.h"
 HAVE_JACK_H:=x$(shell if test -e "$(JACK_H)"; then echo -n oui ; else echo -n non ; fi)x
 ifeq ($(HAVE_JACK_H),xouix)
-HAVE_JACK=1
+HAVE_JACK:=1
 endif
 else
-HAVE_JACK_H=x$(shell if test -e "/usr/include/jack/jack.h"; then echo -n oui ; else echo -n non ; fi)x
+HAVE_JACK_H:=x$(shell if test -e "/usr/include/jack/jack.h"; then echo -n oui ; else echo -n non ; fi)x
 ifeq ($(HAVE_JACK_H),xouix)
-HAVE_JACK=1
+HAVE_JACK:=1
 endif
 
 JLDFLAGS+=-ljack
@@ -84,11 +83,16 @@ jynth.o:x0x.h
 jsynth.exe: jsynth.o x0x.o
 	$(CC) -o $@ $^ $(LDFLAGS)
 
+ifdef WIN32
+# this is for ntohl
+catmid.exe: LDFLAGS+=-lws2_32
+endif
+
 %.exe:	%.c
 	$(CC) -o $@ $(CFLAGS) $^ $(LDFLAGS)
 
 clean:
-	$(RM) $(TARGET) *.o *.exe stdout.txt stderr.txt
+	@$(RM) $(TARGET) *.o *.exe stdout.txt stderr.txt
 
 clobber: clean
-	$(RM) *~
+	@$(RM) *~
