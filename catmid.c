@@ -23,8 +23,7 @@ uint32_t ntohl( uint32_t val)
 int main( int argc, char *argv[])
 {
 #ifdef WIN32
-	freopen( "CON", "w", stdout );
-	freopen( "CON", "w", stderr );
+	setbuf(stdout, 0);
 #endif
 
 	char *chunkname = 0;
