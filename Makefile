@@ -22,7 +22,11 @@ JACK:="/c/Program Files (x86)/Jack"
 JCFLAGS+=-I$(JACK)/includes
 #JLDFLAGS+=-L$(JACK)/lib
 #JLDFLAGS+=-ljack
+ifdef USE32
 JLDFLAGS+=$(JACK)/lib/libjack.lib
+else
+JLDFLAGS+=$(JACK)/lib/libjack64.lib
+endif
 JACK_H:="$(JACK)/includes/jack/jack.h"
 HAVE_JACK_H:=x$(shell if test -e "$(JACK_H)"; then echo -n oui ; else echo -n non ; fi)x
 ifeq ($(HAVE_JACK_H),xouix)
