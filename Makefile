@@ -58,6 +58,7 @@ ifdef HAVE_SDL
 ifdef HAVE_JACK
 TARGET+=jsynth.exe
 endif
+TARGET+=ssynth.exe
 endif
 
 all: SDL_CHECK $(TARGET)
@@ -86,8 +87,16 @@ jsynth.exe:LDFLAGS+=$(SLDFLAGS)
 jsynth.exe:LDFLAGS+=$(JLDFLAGS)
 jsynth.exe:LDFLAGS+=-lm
 
-jynth.o:x0x.h
+jsynth.o:x0x.h
 jsynth.exe: jsynth.o x0x.o
+	$(CC) -o $@ $^ $(LDFLAGS)
+
+ssynth.exe:CFLAGS+=$(SCFLAGS)
+ssynth.exe:LDFLAGS+=$(SLDFLAGS)
+ssynth.exe:LDFLAGS+=-lm
+
+ssynth.o:x0x.h
+ssynth.exe: ssynth.o x0x.o
 	$(CC) -o $@ $^ $(LDFLAGS)
 
 ifdef WIN32

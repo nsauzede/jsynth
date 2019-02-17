@@ -5,7 +5,6 @@
 #endif
 
 #include <SDL.h>
-#include <jack/jack.h>
 
 typedef struct {
 	uint8_t note;
@@ -288,8 +287,9 @@ int load( char *fname)
 #define nbars NBARS
 #endif
 
+int nchannels = 1;
 int sampleFrequency = 44100;
-typedef jack_default_audio_sample_t sample_t;
+typedef float sample_t;
 
 int __play_not_pause = 1;
 int __volume = 100;			// %
@@ -371,9 +371,11 @@ double filter( double input, double fc)
 }
 #endif
 
-int process_audio( jack_nframes_t nframes, void *arg) {
-	jack_port_t *port = arg;
-	sample_t *stream = jack_port_get_buffer( port, nframes);
+void MyAudioCallback(void *userdata, Uint8 *_stream, int len) {
+//	printf("Hello userdata=%p stream=%p len=%d\n", userdata, stream, len);
+#if 1
+	int nframes = len / nchannels / sizeof(sample_t);
+	sample_t *stream = (float *)_stream;
 	int i;
 	int _tune = __tune;
 	int _volume = __volume;
@@ -494,7 +496,7 @@ int process_audio( jack_nframes_t nframes, void *arg) {
 		t++;
 		stream[i] = s;
 	}
-	return 0;
+#endif
 }
 void fillbox( SDL_Surface *screen, SDL_Rect *_rect, Uint32 col) {
 	SDL_Rect rect;
@@ -530,21 +532,30 @@ int main( int argc, char *argv[]) {
 #endif
 
 	printf( "playing [%s]\n", song_info);
-	jack_status_t status;
-	jack_client_t *client = jack_client_open( "jsynth", JackNoStartServer, &status);
-	jack_port_t *port;
-	if (client) {
-		port = jack_port_register( client, "output", JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);
-		jack_set_process_callback( client, process_audio, port);
-		sampleFrequency = jack_get_sample_rate( client);
-		printf( "sampleFrequency=%d\n", sampleFrequency);
-		jack_activate( client);
-	} else {
-		printf( "jack server not running ?\n");
-		exit( 1);
-	}
-	SDL_Init( SDL_INIT_VIDEO);
+	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
 	atexit( SDL_Quit);
+	SDL_AudioSpec want, have;
+	SDL_AudioDeviceID adev;
+	SDL_memset(&want, 0, sizeof(want)); /* or SDL_zero(want) */
+	want.freq = sampleFrequency;
+	want.format = AUDIO_F32;
+	want.channels = nchannels;
+	want.samples = 4096;
+	want.callback = MyAudioCallback; /* you wrote this function elsewhere -- see SDL_AudioSpec for details */
+	adev = SDL_OpenAudioDevice(NULL, 0, &want, &have, SDL_AUDIO_ALLOW_FORMAT_CHANGE);
+	if (adev == 0) {
+		SDL_Log("Failed to open audio: %s", SDL_GetError());
+		exit(1);
+	} else {
+		if (have.format != want.format) { /* we let this one thing change. */
+			SDL_Log("We didn't get Float32 audio format.");
+			exit(1);
+		}
+		sampleFrequency = have.freq;
+		nchannels = have.channels;
+	}
+	printf("Starting audio with %d channels, %d freq\n", nchannels, sampleFrequency);
+	SDL_PauseAudioDevice(adev, 0); /* start audio playing. */
 //	freopen( "CON", "w", stdout );
 //	freopen( "CON", "w", stderr );
 	int ww = 100;
@@ -744,6 +755,7 @@ int main( int argc, char *argv[]) {
 		_old_step = _step;
 	}
 	SDL_FreeSurface( screen);
+	SDL_CloseAudioDevice(adev);
 	return 0;
 }
 
