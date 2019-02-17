@@ -3,6 +3,7 @@
 #ifdef USE_MATH
 #include <math.h>
 #endif
+
 #include <SDL.h>
 #include <jack/jack.h>
 
@@ -549,12 +550,32 @@ int main( int argc, char *argv[]) {
 //	freopen( "CON", "w", stderr );
 	int ww = 100;
 	int hh = 100;
+#ifdef SDL1
 	SDL_Surface *screen = SDL_SetVideoMode( ww, hh, 32, 0);
 	if (!screen) {
 		fprintf(stderr, "Unable to open video: %s\n", SDL_GetError());
 		exit(1);
 	}
 	SDL_EnableKeyRepeat( SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
+#else
+	SDL_Window *sdlWindow = 0;
+	SDL_Renderer *sdlRenderer = 0;
+	SDL_Texture *sdlTexture = 0;
+	SDL_CreateWindowAndRenderer(ww, hh, 0
+//	|| SDL_WINDOW_FULLSCREEN_DESKTOP
+	, &sdlWindow, &sdlRenderer);
+	SDL_Surface *screen = SDL_CreateRGBSurface( 0, ww, hh, 32,
+                                        0x00FF0000,
+                                        0x0000FF00,
+                                        0x000000FF,
+                                        0xFF000000);
+	if (screen) {
+		sdlTexture = SDL_CreateTexture( sdlRenderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, ww, hh);
+	} else {
+		fprintf(stderr, "Unable to open video: %s\n", SDL_GetError());
+		exit(1);
+	}
+#endif
 	int dirty = 1;
 	int done = 0;
 	int shift = 0;
@@ -711,7 +732,14 @@ int main( int argc, char *argv[]) {
 		fillbox( screen, &rect, red);
 		rect.y = (double)hh - (banks[pattern][_step].note + 13 * banks[pattern][_step].octave + 1) * (hh - h) / (13 * 3);
 		fillbox( screen, &rect, blue);
-		SDL_UpdateRect( screen, 0, 0, 0, 0);
+#ifdef SDL1
+		SDL_UpdateRect(screen, 0, 0, 0, 0);
+#else
+		SDL_UpdateTexture(sdlTexture, NULL, screen->pixels, screen->pitch);
+		SDL_RenderClear(sdlRenderer);
+		SDL_RenderCopy(sdlRenderer, sdlTexture, NULL, NULL);
+		SDL_RenderPresent(sdlRenderer);
+#endif
 		if (_old_step == _step)
 			SDL_Delay( 1);
 		_old_step = _step;

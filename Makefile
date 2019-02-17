@@ -12,18 +12,9 @@ TARGET+=rbs2x0x.exe
 TARGET+=catx0x.exe
 TARGET+=catmid.exe
 
-SDL_CONFIG:=sdl-config
-TEST_SDL_CONFIG:=x$(shell $(SDL_CONFIG) >& /dev/null)x
-ifneq ($(WHICH_SDL_CONFIG),x127x)
-HAVE_SDL:=1
-endif
-
 CFLAGS:=-Wall -Werror
 #CFLAGS+=-O2
 CFLAGS+=-g -O0
-
-SCFLAGS+=`sdl-config --cflags`
-SLDFLAGS+=`sdl-config --libs`
 
 ifdef WIN32
 #JACK:="/c/Program Files/Jack v1.9.6"
@@ -31,7 +22,11 @@ JACK:="/c/Program Files (x86)/Jack"
 JCFLAGS+=-I$(JACK)/includes
 #JLDFLAGS+=-L$(JACK)/lib
 #JLDFLAGS+=-ljack
+ifdef USE32
 JLDFLAGS+=$(JACK)/lib/libjack.lib
+else
+JLDFLAGS+=$(JACK)/lib/libjack64.lib
+endif
 JACK_H:="$(JACK)/includes/jack/jack.h"
 HAVE_JACK_H:=x$(shell if test -e "$(JACK_H)"; then echo -n oui ; else echo -n non ; fi)x
 ifeq ($(HAVE_JACK_H),xouix)
@@ -46,6 +41,18 @@ endif
 JLDFLAGS+=-ljack
 endif
 
+include sdl.mak
+ifdef SDLCONFIG
+HAVE_SDL:=1
+ifeq ($(SDL_VER),1)
+SDL_FLAGS+=-DSDL1
+else
+SDL_FLAGS+=-DSDL2
+endif
+
+SCFLAGS+=$(SDL_FLAGS)
+SLDFLAGS+=$(SDL_LIBS)
+endif
 
 ifdef HAVE_SDL
 ifdef HAVE_JACK
@@ -53,7 +60,7 @@ TARGET+=jsynth.exe
 endif
 endif
 
-all:$(TARGET)
+all: SDL_CHECK $(TARGET)
 
 rbs.o:rbs.h
 catrbs.o:rbs.h
