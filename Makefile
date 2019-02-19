@@ -11,6 +11,7 @@ TARGET+=mkx0x.exe
 TARGET+=rbs2x0x.exe
 TARGET+=catx0x.exe
 TARGET+=catmid.exe
+TARGET+=sdlaud.exe
 
 CFLAGS:=-Wall -Werror
 #CFLAGS+=-O2
@@ -97,6 +98,13 @@ ssynth.exe:LDFLAGS+=-lm
 
 ssynth.o:x0x.h
 ssynth.exe: ssynth.o x0x.o
+	$(CC) -o $@ $^ $(LDFLAGS)
+
+sdlaud.exe:CFLAGS+=$(SCFLAGS)
+sdlaud.exe:LDFLAGS+=$(SLDFLAGS)
+sdlaud.exe:LDFLAGS+=-lm
+
+sdlaud.exe: sdlaud.o
 	$(CC) -o $@ $^ $(LDFLAGS)
 
 ifdef WIN32
