@@ -58,6 +58,7 @@ endif
 ifdef HAVE_SDL
 ifdef HAVE_JACK
 TARGET+=jsynth.exe
+TARGET+=j.exe
 endif
 TARGET+=ssynth.exe
 endif
@@ -87,6 +88,8 @@ jsynth.exe:CFLAGS+=$(JCFLAGS)
 jsynth.exe:LDFLAGS+=$(SLDFLAGS)
 jsynth.exe:LDFLAGS+=$(JLDFLAGS)
 jsynth.exe:LDFLAGS+=-lm
+
+j.exe:LDFLAGS+=$(JLDFLAGS)
 
 jsynth.o:x0x.h
 jsynth.exe: jsynth.o x0x.o
