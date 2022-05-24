@@ -13,6 +13,9 @@ And run:
 a2jmidid -e &
 To connect the Alsa midi output as Jack midi input
 
+Or better, switch to pipewire:
+https://ubuntuhandbook.org/index.php/2022/04/pipewire-replace-pulseaudio-ubuntu-2204/
+
 ## WORLDE Panda MINI
 Pad1-8: chan9 Freq: 48 45 49 51 36 38 42 46 (02-7f)
   97 bytes=3 : NOTE ON : chan=9 freq=48 velo=127 99 30 7f
