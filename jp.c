@@ -82,7 +82,7 @@ static void process_midi_input(jack_port_t *port, jack_nframes_t nframes) {
 		jack_time_t dftime = ftime - _ftime;
 		_jtime = jtime;
 		_ftime = ftime;
-		printf("#%d nf=%d bytes=%d jtime=%" PRIu64 "(%6" PRIu64 ") ftime=%" PRIu64 "(%6" PRIu64 "): ", count, (int)nframes, size, (uint64_t)jtime, (uint64_t)djtime, (uint64_t)ftime, (uint64_t)dftime);
+		printf("#%d bytes=%d jtime=%" PRIu64 "(%6" PRIu64 ") ftime=%" PRIu64 "(%6" PRIu64 "): ", count, size, (uint64_t)jtime, (uint64_t)djtime, (uint64_t)ftime, (uint64_t)dftime);
 #else
 		printf("#%4d bytes=%d : ", count, size);
 #endif
@@ -234,6 +234,50 @@ System Reset
 	}
 }
 
+typedef struct {
+    jack_nframes_t start;
+    jack_nframes_t len;
+    int channel;
+    int freq;
+    int velocity;
+} note_t;
+
+#define S 0*10*1024
+#define L 25000
+note_t notes[] = {
+    {S+0*L, L, 0, 40, 44},
+    {S+0*L, L, 0, 52, 36},
+
+    {S+1*L, L, 0, 55, 36},
+    {S+1*L, L, 0, 59, 40},
+    {S+1*L, L, 0, 64, 40},
+
+    {S+2*L, L, 0, 40, 44},
+    {S+2*L, L, 0, 52, 36},
+
+    {S+3*L, L, 0, 57, 40},
+    {S+3*L, L, 0, 60, 40},
+    {S+3*L, L, 0, 66, 44},
+
+    {S+4*L, L, 0, 40, 44},
+    {S+4*L, L, 0, 52, 36},
+
+    {S+5*L, L, 0, 58, 53},
+    {S+5*L, L, 0, 61, 36},
+    {S+5*L, L, 0, 67, 44},
+
+    {S+6*L, L, 0, 40, 44},
+    {S+6*L, L, 0, 52, 36},
+
+    {S+7*L, L, 0, 57, 36},
+    {S+7*L, L, 0, 61, 32},
+    {S+7*L, L, 0, 63, 40},
+};
+int nnotes = sizeof(notes)/sizeof(notes[0]);
+
+#define MAXFRAME 999999999
+jack_nframes_t g_frame = 0;
+jack_nframes_t g_max = MAXFRAME;
 static void process_midi_output(jack_port_t *port, jack_nframes_t nframes) {
 	void *port_buffer = jack_port_get_buffer(port, nframes);
 	if (!port_buffer) {
@@ -241,31 +285,81 @@ static void process_midi_output(jack_port_t *port, jack_nframes_t nframes) {
 		return;
 	}
 	jack_midi_clear_buffer(port_buffer);
-	if (!j.run_stop)return;
+	if (nframes <= 0)return;
+//	if (!j.run_stop)return;
 	static int count = 0;
+	jack_nframes_t nextframe = g_frame + nframes;
+/*
+       nframes  nframes
+g_framev       vv       v
+       [-------][-------]
+A  S E				=> nothing
+B  S      E			=> NOTEOFF
+C        S         E		=> NOTEON
+D         S   E			=> NOTEON, NOTEOFF
+E                 S   E		=> nothing
+*/
+	jack_nframes_t max = 0;
+	jack_nframes_t offset = 0;
+	for (int i = 0; i < nnotes; i++) {
+		jack_nframes_t start = notes[i].start;
+		jack_nframes_t len = notes[i].len;
+		int channel = notes[i].channel;
+		int freq = notes[i].freq;
+		int velocity = notes[i].velocity;
+#if 0
+		if (g_max >= g_frame && g_max < nextframe) {	// end of notes -- loop
+	printf("#%3d g_f=%d i=%d ", count, (int)g_frame, i);
+			printf("Looping!\n");
+			nextframe = 0;	// g_frame will be set to this
+			break;
+		}
+#endif
+		if (start >= g_frame) {
+			if (start < nextframe) {
+				unsigned char *buf = jack_midi_event_reserve(port_buffer, start - g_frame + offset, 3);
+				if (!buf){
+					printf("Null buf NOTE ON\n");
+					return;
+				}
+	printf("#%3d g_f=%d i=%d ", count, (int)g_frame, i);
+				printf("Sending NOTE ON f=%d v=%d at %d\n", freq, velocity, (int)(start - g_frame + offset));
+				buf[0] = 0x90 + channel;
+				buf[1] = freq;
+				buf[2] = velocity;
+			}
+		}
+		jack_nframes_t end = start + len;
+		if (end > max)
+		    max = end;
+		if (end >= g_frame) {
+			if (end < nextframe) {
+				unsigned char *buf = jack_midi_event_reserve(port_buffer, end - g_frame + offset, 3);
+				if (!buf){
+					printf("Null buf NOTE OFF\n");
+					return;
+				}
+	printf("#%3d g_f=%d i=%d ", count, (int)g_frame, i);
+				printf("Sending NOTE OFF f=%d v=%d at %d\n", freq, velocity, (int)(end - g_frame + offset));
+				buf[0] = 0x80 + channel;
+				buf[1] = freq;
+				buf[2] = velocity;
+if (i == nnotes - 1) {
+	printf("#%3d g_f=%d i=%d ", count, (int)g_frame, i);
+			printf("Looping!\n");
+			offset = end - g_frame + offset;
+			g_frame = 0;	// g_frame will be set to this
+			nextframe = g_frame + nframes;
+			i = -1;	// continue for will postincrement
+			continue;
+}
+			}
+		}
+	}
+	g_frame = nextframe;
+	if (max > 0)
+		g_max = max;
 	count++;
-	int T=200;
-	int D=100;
-	int TON=T;
-	int TOFF=TON+D;
-	if (count== TON || count == TOFF) {
-//	jack_nframes_t t = nframes;
-	jack_nframes_t t = 0;
-	unsigned char *buf = jack_midi_event_reserve(port_buffer, t, 3);
-	if (!buf)return;
-	if (count == TON) {
-		// NOTE ON
-		printf("Sending NOTE ON\n");
-		buf[0] = 0x90;
-	} else if (count >= TOFF) {
-		// NOTE OFF
-		count = 0;
-		printf("Sending NOTE OFF\n");
-		buf[0] = 0x80;
-	}
-	buf[1] = 0x4d;
-	buf[2] = 0x40;
-	}
 }
 
 static int process_callback(jack_nframes_t nframes, void *arg) {
@@ -303,6 +397,7 @@ int main(int argc, char *argv[]) {
 		printf("Can't register Jack midi output port\n");
 		exit(1);
 	}
+	sleep(3);
 	if (jack_set_process_callback(client, process_callback, &j)) {
 		printf("Can't set Jack process callback\n");
 		exit(1);
