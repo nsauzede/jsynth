@@ -5,6 +5,7 @@
 #include <jack/jack.h>
 #include <jack/midiport.h>
 
+#define DEFAULT_TEMPO 120
 typedef enum {
 LEARN,
 RUN_STOP,
@@ -59,6 +60,9 @@ static void info() {
 	printf("\n");
 }
 
+#define MAXFRAME 999999999
+jack_nframes_t g_frame = 0;
+jack_nframes_t g_max = MAXFRAME;
 static void process_midi_input(jack_port_t *port, jack_nframes_t nframes) {
 	void *port_buffer = jack_port_get_buffer(port, nframes);
 	if (!port_buffer) {
@@ -141,7 +145,11 @@ System Reset
 				case 0xc:printf("Stop");break;
 				case 0xd:printf("Undefined FD (Reserved)");break;
 				case 0xe:printf("Active Sensing");break;
-				case 0xf:printf("System Reset");break;
+				case 0xf:printf("System Reset");
+				    j.tempo = DEFAULT_TEMPO;
+//				    j.run_stop = 0;
+				    g_frame = 0;
+				break;
 				}
 				break;
 			case 0x80 ... 0x9f: {
@@ -150,8 +158,6 @@ System Reset
 				int vel = event.buffer[2];
 				if (status & 0x10) {
 					printf("NOTE ON ");
-				} else {
-					printf("NOTE OFF");
 					if (j.learn) {
 						if (freq == j.prefs.note[LEARN]) {
 							j.learn_idx++;
@@ -181,6 +187,8 @@ System Reset
 							info();
 						}
 					}
+				} else {
+					printf("NOTE OFF");
 				}
 				printf(": chan=%d freq=%d velo=%d", chan, freq, vel);
 				break;
@@ -293,9 +301,6 @@ note_t notes[] = {
 };
 int nnotes = sizeof(notes)/sizeof(notes[0]);
 
-#define MAXFRAME 999999999
-jack_nframes_t g_frame = 0;
-jack_nframes_t g_max = MAXFRAME;
 static void process_midi_output(jack_port_t *port, jack_nframes_t nframes) {
 	void *port_buffer = jack_port_get_buffer(port, nframes);
 	if (!port_buffer) {
@@ -399,7 +404,8 @@ int main(int argc, char *argv[]) {
 	if (arg < argc) {
 		prefs = argv[arg++];
 	}
-	j.tempo = 120;
+	j.tempo = DEFAULT_TEMPO;
+	j.run_stop = 1;
 	j.prefs_f = prefs;
 	// default prefs are empty
 	// to start, just put the note freq of the learn key (eg: "108")
@@ -411,6 +417,9 @@ int main(int argc, char *argv[]) {
 		printf("Can't open Jack client\n");
 		exit(1);
 	}
+    j.samplerate = jack_get_sample_rate(client);
+    printf("%s: samplerate=%d\n", __func__, (int)j.samplerate);
+    jack_set_sample_rate_callback(client, jack_samplerate_cb, &j);
 	j.client = client;
 	j.input = jack_port_register(client, "input", JACK_DEFAULT_MIDI_TYPE, JackPortIsInput, 0);
 	if (!j.input) {
@@ -422,15 +431,12 @@ int main(int argc, char *argv[]) {
 		printf("Can't register Jack midi output port\n");
 		exit(1);
 	}
-    j.samplerate = jack_get_sample_rate(client);
-    printf("%s: samplerate=%d\n", __func__, (int)j.samplerate);
-    jack_set_sample_rate_callback(client, jack_samplerate_cb, &j);
-//	sleep(1);
+	printf("input=%d output=%d\n", jack_port_connected(j.input), jack_port_connected(j.output));
 	if (jack_set_process_callback(client, process_callback, &j)) {
 		printf("Can't set Jack process callback\n");
 		exit(1);
 	}
-	sleep(2);
+    sleep(1);	// let some time for external connection to settle ?
 	if (jack_activate(client)) {
 		printf("Can't activate Jack client\n");
 		exit(1);
@@ -438,7 +444,8 @@ int main(int argc, char *argv[]) {
 	info();
 	printf("Running..\n");
 	while (1) {
-		usleep(1000);
+	    printf("input=%d output=%d\n", jack_port_connected(j.input), jack_port_connected(j.output));
+		sleep(1);
 	}
 	return 0;
 }
