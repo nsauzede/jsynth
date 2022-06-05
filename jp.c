@@ -397,7 +397,7 @@ int main(int argc, char *argv[]) {
 		printf("Can't register Jack midi output port\n");
 		exit(1);
 	}
-	sleep(3);
+	sleep(1);
 	if (jack_set_process_callback(client, process_callback, &j)) {
 		printf("Can't set Jack process callback\n");
 		exit(1);
