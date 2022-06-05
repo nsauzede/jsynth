@@ -242,36 +242,44 @@ typedef struct {
     int velocity;
 } note_t;
 
-#define S 0*10*1024
-#define L 25000
+jack_nframes_t samplerate = 48000;
+
+int jack_samplerate_cb(jack_nframes_t nframes, void *arg) {
+    samplerate = nframes;
+    printf("%s: samplerate=%d\n", __func__, (int)samplerate);
+    return 0;
+}
+
+// in percentage
+#define L 50
 note_t notes[] = {
-    {S+0*L, L, 0, 40, 44},
-    {S+0*L, L, 0, 52, 36},
+    {0*L, L, 0, 40, 44},
+    {0*L, L, 0, 52, 36},
 
-    {S+1*L, L, 0, 55, 36},
-    {S+1*L, L, 0, 59, 40},
-    {S+1*L, L, 0, 64, 40},
+    {1*L, L, 0, 55, 36},
+    {1*L, L, 0, 59, 40},
+    {1*L, L, 0, 64, 40},
 
-    {S+2*L, L, 0, 40, 44},
-    {S+2*L, L, 0, 52, 36},
+    {2*L, L, 0, 40, 44},
+    {2*L, L, 0, 52, 36},
 
-    {S+3*L, L, 0, 57, 40},
-    {S+3*L, L, 0, 60, 40},
-    {S+3*L, L, 0, 66, 44},
+    {3*L, L, 0, 57, 40},
+    {3*L, L, 0, 60, 40},
+    {3*L, L, 0, 66, 44},
 
-    {S+4*L, L, 0, 40, 44},
-    {S+4*L, L, 0, 52, 36},
+    {4*L, L, 0, 40, 44},
+    {4*L, L, 0, 52, 36},
 
-    {S+5*L, L, 0, 58, 53},
-    {S+5*L, L, 0, 61, 36},
-    {S+5*L, L, 0, 67, 44},
+    {5*L, L, 0, 58, 53},
+    {5*L, L, 0, 61, 36},
+    {5*L, L, 0, 67, 44},
 
-    {S+6*L, L, 0, 40, 44},
-    {S+6*L, L, 0, 52, 36},
+    {6*L, L, 0, 40, 44},
+    {6*L, L, 0, 52, 36},
 
-    {S+7*L, L, 0, 57, 36},
-    {S+7*L, L, 0, 61, 32},
-    {S+7*L, L, 0, 63, 40},
+    {7*L, L, 0, 57, 36},
+    {7*L, L, 0, 61, 32},
+    {7*L, L, 0, 63, 40},
 };
 int nnotes = sizeof(notes)/sizeof(notes[0]);
 
@@ -302,8 +310,8 @@ E                 S   E		=> nothing
 	jack_nframes_t max = 0;
 	jack_nframes_t offset = 0;
 	for (int i = 0; i < nnotes; i++) {
-		jack_nframes_t start = notes[i].start;
-		jack_nframes_t len = notes[i].len;
+		jack_nframes_t start = notes[i].start * samplerate / 100;
+		jack_nframes_t len = notes[i].len * samplerate / 100;
 		int channel = notes[i].channel;
 		int freq = notes[i].freq;
 		int velocity = notes[i].velocity;
@@ -397,11 +405,12 @@ int main(int argc, char *argv[]) {
 		printf("Can't register Jack midi output port\n");
 		exit(1);
 	}
-	sleep(1);
+//	sleep(1);
 	if (jack_set_process_callback(client, process_callback, &j)) {
 		printf("Can't set Jack process callback\n");
 		exit(1);
 	}
+	sleep(2);
 	if (jack_activate(client)) {
 		printf("Can't activate Jack client\n");
 		exit(1);
