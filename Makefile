@@ -92,6 +92,10 @@ jsynth.exe:LDFLAGS+=-lm
 
 j.exe:LDFLAGS+=$(JLDFLAGS)
 jp.exe:LDFLAGS+=$(JLDFLAGS)
+jrb.exe:LDFLAGS+=$(JLDFLAGS)
+ifdef USEJRB
+jrb.exe:CFLAGS+=-DUSEJRB=$(USEJRB)
+endif
 
 jsynth.o:x0x.h
 jsynth.exe: jsynth.o x0x.o
