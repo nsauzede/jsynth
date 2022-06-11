@@ -75,12 +75,22 @@ int jack_samplerate_cb(jack_nframes_t nframes, void *arg) {
 }
 
 static int process_callback(jack_nframes_t nframes, void *arg) {
+#if 1
 #if 0
     static uint64_t us0 = 0;
     uint64_t us = gett_us();
     printf("%s: dus=%" PRIu64 "\n", __func__, us - us0);
     us0 = us;
-    printf("%s: nframes=%d\n", __func__, (int)nframes);
+#endif
+//    printf("%s: nframes=%d\n", __func__, (int)nframes);
+    jack_client_t *jc = (jack_client_t *)arg;
+    jack_nframes_t current_frames;
+    jack_time_t current_usecs, next_usecs;
+    float period_usecs;
+    if (!jack_get_cycle_times(jc, &current_frames, &current_usecs, &next_usecs, &period_usecs)) {
+        printf("%s: current_frames=%" PRIu32 " current_usecs=%" PRIu64 " next_usecs=%" PRIu64 " period_usecs=%f\n",
+            __func__, (uint32_t)current_frames, (uint64_t)current_usecs, (uint64_t)next_usecs, period_usecs);
+    }
 #endif
     return 0;
 }
@@ -92,7 +102,7 @@ int initj() {
     double sr = jack_get_sample_rate(jc);
     printf("%s: samplerate=%f\n", __func__, sr);
     jack_set_sample_rate_callback(jc, jack_samplerate_cb, 0);
-    jack_set_process_callback(jc, process_callback, 0);
+    jack_set_process_callback(jc, process_callback, jc);
     if (jack_activate(jc)) {
         printf("cannot activate jack client\n");
         exit(1);;
